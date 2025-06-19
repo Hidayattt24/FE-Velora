@@ -1,10 +1,24 @@
+"use client";
+
 import { Navbar } from "@/components/Navbar";
 import Image from "next/image";
+import { useState, useEffect } from "react";
 
 export default function Home() {
+  const [showContent, setShowContent] = useState(false);
+
+  useEffect(() => {
+    // Wait for 5 seconds before showing the content
+    const timer = setTimeout(() => {
+      setShowContent(true);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="relative">
-      <Navbar />
+      {showContent && <Navbar />}
       
       {/* Home Section */}
       <section id="home" className="min-h-screen pt-16 flex items-center justify-center bg-gradient-to-b from-[#FFE3EC] to-white">
