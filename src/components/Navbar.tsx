@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import { 
-  IconHome2, 
-  IconInfoCircle,
-  IconHeartHandshake,
-  IconPhone, 
+  IconLayoutDashboard,
+  IconStars,
+  IconMessageCircle2,
+  IconPhone,
   IconLogin,
   IconLayoutNavbarCollapse
 } from "@tabler/icons-react";
@@ -22,19 +22,19 @@ import { cn } from "@/lib/utils";
 
 const navigationItems = [
   {
-    title: "Beranda",
+    title: "Dashboard",
     href: "#home",
-    icon: <IconHome2 className="h-full w-full text-[#D291BC]" />,
+    icon: <IconLayoutDashboard className="h-full w-full text-[#D291BC]" />,
   },
   {
-    title: "Tentang",
-    href: "#about",
-    icon: <IconInfoCircle className="h-full w-full text-[#D291BC]" />,
+    title: "Fitur",
+    href: "#features",
+    icon: <IconStars className="h-full w-full text-[#D291BC]" />,
   },
   {
-    title: "Layanan",
-    href: "#services",
-    icon: <IconHeartHandshake className="h-full w-full text-[#D291BC]" />,
+    title: "Kata Mereka",
+    href: "#testimonials",
+    icon: <IconMessageCircle2 className="h-full w-full text-[#D291BC]" />,
   },
   {
     title: "Kontak",
@@ -48,6 +48,25 @@ const navigationItems = [
   },
 ];
 
+// Fungsi untuk smooth scroll
+const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  // Jika bukan link internal (#), biarkan default behavior
+  if (!href.startsWith('#')) return;
+
+  e.preventDefault();
+  const element = document.querySelector(href);
+  if (element) {
+    const offset = 80; // Offset untuk navbar
+    const elementPosition = element.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: "smooth"
+    });
+  }
+};
+
 function IconContainer({
   mouseX,
   title,
@@ -59,39 +78,39 @@ function IconContainer({
   icon: React.ReactNode;
   href: string;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [hovered, setHovered] = useState(false);
+  let ref = useRef<HTMLDivElement>(null);
 
-  const distance = useTransform(mouseX, (val) => {
-    const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
+  let distance = useTransform(mouseX, (val) => {
+    let bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
     return val - bounds.x - bounds.width / 2;
   });
 
-  // Ukuran disesuaikan: lebih kecil di default, lebih smooth scaling
-  const widthTransform = useTransform(distance, [-150, 0, 150], [44, 56, 44]);
-  const heightTransform = useTransform(distance, [-150, 0, 150], [44, 56, 44]);
-  const scaleTransform = useTransform(distance, [-150, 0, 150], [0.9, 1.05, 0.9]);
+  let widthSync = useTransform(distance, [-100, 0, 100], [40, 60, 40]);
+  let heightSync = useTransform(distance, [-100, 0, 100], [40, 60, 40]);
+  let scaleSync = useTransform(distance, [-100, 0, 100], [0.9, 1.1, 0.9]);
 
-  const width = useSpring(widthTransform, {
+  let width = useSpring(widthSync, {
     mass: 0.1,
     stiffness: 150,
-    damping: 15,
+    damping: 12,
   });
-
-  const height = useSpring(heightTransform, {
+  
+  let height = useSpring(heightSync, {
     mass: 0.1,
     stiffness: 150,
-    damping: 15,
+    damping: 12,
   });
 
-  const scale = useSpring(scaleTransform, {
+  let scale = useSpring(scaleSync, {
     mass: 0.1,
     stiffness: 150,
-    damping: 15,
+    damping: 12,
   });
+
+  const [hovered, setHovered] = useState(false);
 
   return (
-    <a href={href}>
+    <a href={href} onClick={(e) => scrollToSection(e, href)}>
       <motion.div
         ref={ref}
         style={{ width, height, scale }}
@@ -101,7 +120,7 @@ function IconContainer({
       >
         <AnimatePresence>
           {hovered && (
-            <motion.div
+            <motion.span
               initial={{ opacity: 0, y: 8, x: "-50%" }}
               animate={{ opacity: 1, y: 0, x: "-50%" }}
               exit={{ opacity: 0, y: 2, x: "-50%" }}
@@ -113,7 +132,7 @@ function IconContainer({
               className="absolute -bottom-8 left-1/2 whitespace-pre rounded-md border border-[#FFE3EC] bg-white/95 px-2 py-0.5 text-xs text-[#D291BC] shadow-sm backdrop-blur-sm"
             >
               {title}
-            </motion.div>
+            </motion.span>
           )}
         </AnimatePresence>
         <motion.div
@@ -127,68 +146,52 @@ function IconContainer({
 }
 
 function MobileNav() {
-  const [open, setOpen] = useState(false);
-  
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <div className="relative block md:hidden">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-4">
         <Image
           src="/landing/logowithname.svg"
           alt="Velora Logo"
-          width={100}
-          height={32}
+          width={110}
+          height={66}
+          className="h-[42px] w-auto"
           priority
-          className="h-8 w-auto"
         />
-        {/* Mobile button disesuaikan */}
         <button
-          onClick={() => setOpen(!open)}
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 shadow-sm hover:bg-[#FFE3EC] hover:shadow-md transition-all duration-300"
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm hover:bg-[#FFE3EC] hover:shadow-md transition-all duration-300"
         >
           <IconLayoutNavbarCollapse className="h-5 w-5 text-[#D291BC]" />
         </button>
       </div>
+
       <AnimatePresence>
-        {open && (
+        {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute right-0 top-full mt-2 flex flex-col gap-2 items-end"
+            className="absolute right-0 top-full mt-2 flex flex-col gap-2"
           >
             {navigationItems.map((item, idx) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, y: -10, scale: 0.9 }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                  scale: 1,
+              <motion.a
+                key={item.href}
+                href={item.href}
+                onClick={(e) => {
+                  scrollToSection(e, item.href);
+                  setIsOpen(false);
                 }}
-                exit={{
-                  opacity: 0,
-                  y: -10,
-                  scale: 0.9,
-                  transition: {
-                    delay: idx * 0.05,
-                  },
-                }}
-                transition={{ 
-                  delay: (navigationItems.length - 1 - idx) * 0.05,
-                  type: "spring",
-                  stiffness: 150,
-                  damping: 15
-                }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ delay: idx * 0.1 }}
+                className="flex items-center gap-3 rounded-lg bg-white/90 px-4 py-2 text-sm text-[#D291BC] shadow-sm hover:bg-[#FFE3EC] hover:shadow-md transition-all duration-300"
               >
-                <a
-                  href={item.href}
-                  className="group flex h-11 w-11 items-center justify-center rounded-full bg-white/90 shadow-sm hover:bg-[#FFE3EC] hover:shadow-md transition-all duration-300"
-                >
-                  <div className="h-5 w-5 transition-transform duration-300 group-hover:scale-110">
-                    {item.icon}
-                  </div>
-                </a>
-              </motion.div>
+                <span className="h-4 w-4">{item.icon}</span>
+                {item.title}
+              </motion.a>
             ))}
           </motion.div>
         )}
@@ -241,11 +244,9 @@ function DesktopNav() {
 
 export function Navbar() {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50">
-      <div className="container mx-auto px-6 py-4">
-        <MobileNav />
-        <DesktopNav />
-      </div>
+    <header className="fixed top-4 left-0 right-0 z-50 px-4">
+      <MobileNav />
+      <DesktopNav />
     </header>
   );
 }

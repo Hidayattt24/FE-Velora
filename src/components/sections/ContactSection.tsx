@@ -36,7 +36,7 @@ export function ContactSection() {
   ];
 
   return (
-    <footer className="relative bg-[#D291BC]">
+    <footer id="contact" className="relative bg-[#D291BC] scroll-mt-20">
       {/* Top gradient for smooth transition */}
       <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white/10 to-transparent"></div>
       

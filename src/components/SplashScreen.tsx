@@ -4,16 +4,21 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 
-export function SplashScreen() {
+interface SplashScreenProps {
+  onComplete?: () => void;
+}
+
+export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
+      onComplete?.();
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [onComplete]);
 
   return (
     <AnimatePresence>
