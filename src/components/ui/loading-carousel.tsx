@@ -28,7 +28,7 @@ const defaultTips: Tip[] = [
   {
     title: "Galeri Perjalanan Kehamilan",
     description: "Abadikan dan dokumentasikan setiap momen berharga dalam perjalanan kehamilan Anda dengan galeri digital yang terorganisir.",
-    image: "/landing/gallery.png"
+    image: "public/landing/gallery.jpg"
   },
   {
     title: "Linimasa Kehamilan Interaktif",
