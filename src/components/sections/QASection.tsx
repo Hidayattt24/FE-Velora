@@ -83,7 +83,7 @@ const ReviewCard = ({
 
 export function QASection() {
   return (
-    <section id="testimonials" className="py-20 bg-white">
+    <section id="testimonials" className="relative py-20 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-[#D291BC]">
@@ -109,6 +109,9 @@ export function QASection() {
           <div className="pointer-events-none absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l from-white"></div>
         </div>
       </div>
+      
+      {/* Gradient transition to footer */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-white to-[#D291BC] opacity-20"></div>
     </section>
   );
 } 
