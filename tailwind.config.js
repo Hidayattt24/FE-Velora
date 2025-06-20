@@ -22,6 +22,20 @@ module.exports = {
           950: "#4c0519",
         },
       },
+      animation: {
+        'marquee': 'marquee var(--duration, 40s) linear infinite',
+        'marquee-reverse': 'marquee-reverse var(--duration, 40s) linear infinite',
+      },
+      keyframes: {
+        marquee: {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(calc(-50% - var(--gap, 1rem)))' },
+        },
+        'marquee-reverse': {
+          from: { transform: 'translateX(calc(-50% - var(--gap, 1rem)))' },
+          to: { transform: 'translateX(0)' },
+        },
+      },
     },
   },
   plugins: [],
