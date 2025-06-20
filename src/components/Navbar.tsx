@@ -7,7 +7,11 @@ import {
   IconMessageCircle2,
   IconPhone,
   IconLogin,
-  IconLayoutNavbarCollapse
+  IconLayoutNavbarCollapse,
+  IconHome,
+  IconUser,
+  IconMessage,
+  IconLogout
 } from "@tabler/icons-react";
 import {
   motion,
@@ -18,9 +22,8 @@ import {
   MotionValue,
 } from "motion/react";
 import { useRef, useState } from "react";
-import { cn } from "@/lib/utils";
 
-const navigationItems = [
+const defaultNavigationItems = [
   {
     title: "Dashboard",
     href: "#home",
@@ -43,8 +46,36 @@ const navigationItems = [
   },
   {
     title: "Masuk",
-    href: "/login",
+    href: "/auth/login",
     icon: <IconLogin className="h-full w-full text-[#D291BC]" />,
+  },
+];
+
+const authNavigationItems = [
+  {
+    title: "Beranda",
+    href: "/",
+    icon: <IconHome className="h-full w-full text-[#D291BC]" />,
+  },
+  {
+    title: "Profil",
+    href: "/profile",
+    icon: <IconUser className="h-full w-full text-[#D291BC]" />,
+  },
+  {
+    title: "Pesan",
+    href: "/messages",
+    icon: <IconMessage className="h-full w-full text-[#D291BC]" />,
+  },
+  {
+    title: "Kontak",
+    href: "/contact",
+    icon: <IconPhone className="h-full w-full text-[#D291BC]" />,
+  },
+  {
+    title: "Keluar",
+    href: "/logout",
+    icon: <IconLogout className="h-full w-full text-[#D291BC]" />,
   },
 ];
 
@@ -145,12 +176,13 @@ function IconContainer({
   );
 }
 
-function MobileNav() {
+function MobileNav({ items = defaultNavigationItems }: { items?: typeof defaultNavigationItems }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="relative block md:hidden">
-      <div className="flex items-center gap-4">
+    <>
+      {/* Logo */}
+      <div className="block md:hidden">
         <Image
           src="/landing/logowithname.svg"
           alt="Velora Logo"
@@ -159,48 +191,53 @@ function MobileNav() {
           className="h-[42px] w-auto"
           priority
         />
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm hover:bg-[#FFE3EC] hover:shadow-md transition-all duration-300"
-        >
-          <IconLayoutNavbarCollapse className="h-5 w-5 text-[#D291BC]" />
-        </button>
       </div>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute right-0 top-full mt-2 flex flex-col gap-2"
-          >
-            {navigationItems.map((item, idx) => (
-              <motion.a
-                key={item.href}
-                href={item.href}
-                onClick={(e) => {
-                  scrollToSection(e, item.href);
-                  setIsOpen(false);
-                }}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ delay: idx * 0.1 }}
-                className="flex items-center gap-3 rounded-lg bg-white/90 px-4 py-2 text-sm text-[#D291BC] shadow-sm hover:bg-[#FFE3EC] hover:shadow-md transition-all duration-300"
-              >
-                <span className="h-4 w-4">{item.icon}</span>
-                {item.title}
-              </motion.a>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      {/* Menu Button and Dropdown */}
+      <div className="fixed bottom-6 right-6 block md:hidden">
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute bottom-full right-0 mb-2 flex flex-col gap-2"
+            >
+              {items.map((item, idx) => (
+                <motion.a
+                  key={item.href}
+                  href={item.href}
+                  onClick={(e) => {
+                    scrollToSection(e, item.href);
+                    setIsOpen(false);
+                  }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white/95 shadow-lg hover:bg-[#FFE3EC] hover:shadow-md transition-all duration-300"
+                >
+                  <span className="h-5 w-5">{item.icon}</span>
+                </motion.a>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-white/95 shadow-lg hover:bg-[#FFE3EC] hover:shadow-md transition-all duration-300"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <IconLayoutNavbarCollapse className="h-6 w-6 text-[#D291BC]" />
+        </motion.button>
+      </div>
+    </>
   );
 }
 
-function DesktopNav() {
+function DesktopNav({ items = defaultNavigationItems }: { items?: typeof defaultNavigationItems }) {
   const mouseX = useMotionValue(Infinity);
 
   return (
@@ -229,7 +266,7 @@ function DesktopNav() {
           />
         </motion.div>
         <div className="flex items-center gap-4">
-          {navigationItems.map((item) => (
+          {items.map((item) => (
             <IconContainer
               key={item.href}
               mouseX={mouseX}
@@ -242,11 +279,53 @@ function DesktopNav() {
   );
 }
 
-export function Navbar() {
+function AuthNav() {
+  const mouseX = useMotionValue(Infinity);
+
+  return (
+    <nav className="bg-white shadow-sm fixed w-full top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex justify-between h-16 items-center">
+          <div className="flex items-center">
+            <motion.a
+              href="/"
+              className="flex items-center"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Image
+                src="/landing/logononame.svg"
+                alt="Velora Logo"
+                width={32}
+                height={32}
+                className="h-8 w-auto"
+              />
+            </motion.a>
+          </div>
+          <motion.div
+            onMouseMove={(e) => mouseX.set(e.pageX)}
+            onMouseLeave={() => mouseX.set(Infinity)}
+            className="flex items-center gap-4"
+          >
+            {authNavigationItems.map((item) => (
+              <IconContainer
+                key={item.href}
+                mouseX={mouseX}
+                {...item}
+              />
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+export function Navbar({ items = defaultNavigationItems }: { items?: typeof defaultNavigationItems }) {
   return (
     <header className="fixed top-4 left-0 right-0 z-50 px-4">
-      <MobileNav />
-      <DesktopNav />
+      <MobileNav items={items} />
+      <DesktopNav items={items} />
     </header>
   );
 }
