@@ -88,7 +88,7 @@ export function HeroSection() {
                   transition={{ duration: 0.8, delay: 0.4 }}
                   className="text-[#D291BC] block"
                 >
-                  Kehamilan
+                 
                 </motion.span>
               </h1>
               <motion.h2

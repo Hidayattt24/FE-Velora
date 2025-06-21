@@ -36,6 +36,9 @@ module.exports = {
           to: { transform: 'translateX(0)' },
         },
       },
+      fontFamily: {
+        sans: ['Poppins', 'sans-serif'],
+      },
     },
   },
   plugins: [],
