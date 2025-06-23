@@ -1,9 +1,9 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { IconPlus, IconCalendarEvent, IconX, IconDownload } from "@tabler/icons-react";
+import { IconPlus, IconCalendarEvent, IconX, IconDownload, IconArrowUp } from "@tabler/icons-react";
 import Link from "next/link";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useOutsideClick } from "@/lib/hooks/use-outside-click";
 import { cn } from "@/lib/utils";
 
@@ -184,6 +184,69 @@ function EmptyStateIllustration() {
         ))}
       </motion.svg>
     </div>
+  );
+}
+
+function BackToTopButton() {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const toggleVisibility = () => {
+      if (window.scrollY > 300) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
+    };
+
+    window.addEventListener("scroll", toggleVisibility);
+    return () => window.removeEventListener("scroll", toggleVisibility);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+            transition: {
+              type: "spring",
+              stiffness: 260,
+              damping: 20
+            }
+          }}
+          exit={{ opacity: 0, scale: 0.5 }}
+          onClick={scrollToTop}
+          className={cn(
+            "fixed bg-[#D291BC] text-white shadow-lg rounded-full",
+            "w-12 h-12 flex items-center justify-center transition-colors hover:bg-[#c17ba6]",
+            "right-4 md:right-8",
+            "bottom-[144px] md:bottom-8",
+            "z-[60]"
+          )}
+          whileHover={{
+            scale: 1.1,
+            transition: {
+              type: "spring",
+              stiffness: 400,
+              damping: 10
+            }
+          }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <IconArrowUp className="w-6 h-6" />
+        </motion.button>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -378,12 +441,15 @@ export default function GalleryPage() {
         </AnimatePresence>
       </div>
 
-      {/* Mobile-only Upload Button - Improved positioning */}
+      {/* Back to Top Button */}
+      <BackToTopButton />
+
+      {/* Mobile-only Upload Button */}
       <div className="md:hidden">
         <motion.div
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="fixed bottom-20 right-4 z-50"
+          className="fixed bottom-20 right-4 z-[60]"
         >
           <Link
             href="/main/gallery/upload"
