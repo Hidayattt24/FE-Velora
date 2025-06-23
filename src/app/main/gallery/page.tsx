@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { IconPlus, IconCalendarEvent, IconX, IconDownload, IconArrowUp } from "@tabler/icons-react";
+import { IconPlus, IconCalendarEvent, IconX, IconDownload, IconArrowUp, IconTrash, IconClock, IconCheck } from "@tabler/icons-react";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useOutsideClick } from "@/lib/hooks/use-outside-click";
@@ -254,7 +254,18 @@ export default function GalleryPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
   const [selectedTrimester, setSelectedTrimester] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    // Update time every minute
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   useOutsideClick(cardRef, () => {
     setSelectedId(null);
@@ -269,8 +280,65 @@ export default function GalleryPage() {
       })
     : photos;
 
+  const handleDelete = (photoId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteConfirm(photoId);
+  };
+
+  const confirmDelete = (photoId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Here you would typically make an API call to delete the photo
+    alert(`Foto berhasil dihapus!`);
+    setShowDeleteConfirm(null);
+  };
+
+  const cancelDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteConfirm(null);
+  };
+
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      {/* Profile Section - Simplified */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden">
+            <img
+              src="/main/gallery/photo-profile.jpg"
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div>
+            <p className="text-base sm:text-lg text-[#D291BC] mb-1">
+              Hi mom, <span className="font-medium">Sarah Johnson</span>! 👋
+            </p>
+            <h2 className="text-lg sm:text-xl font-semibold text-[#D291BC]">
+              @sarahmommy
+            </h2>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="flex items-center gap-2 text-[#D291BC]">
+            <IconClock className="w-4 h-4" />
+            <time className="text-sm">
+              {currentTime.toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </time>
+          </div>
+          <div className="text-sm text-[#D291BC] mt-1">
+            {currentTime.toLocaleTimeString('id-ID', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </div>
+        </div>
+      </div>
+
       {/* Centered Header Section - Optimized for mobile */}
       <div className="text-center mb-4 sm:mb-8">
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-[#D291BC] mb-1 sm:mb-2">
@@ -368,7 +436,7 @@ export default function GalleryPage() {
               layoutId={`card-${photo.id}`}
               onClick={() => setSelectedId(photo.id)}
               className={cn(
-                "bg-white rounded-2xl sm:rounded-3xl shadow-lg overflow-hidden cursor-pointer",
+                "bg-white rounded-2xl sm:rounded-3xl shadow-lg overflow-hidden cursor-pointer group",
                 selectedId === photo.id ? "fixed inset-0 sm:inset-4 z-50 m-auto max-w-4xl h-fit" : "relative"
               )}
               initial={selectedId === photo.id ? { opacity: 0, scale: 0.8 } : undefined}
@@ -385,7 +453,7 @@ export default function GalleryPage() {
                   alt={photo.title}
                   className="w-full h-full object-cover"
                 />
-                {selectedId === photo.id && (
+                {selectedId === photo.id ? (
                   <motion.button
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -398,6 +466,38 @@ export default function GalleryPage() {
                   >
                     <IconX className="w-5 h-5 sm:w-6 sm:h-6" />
                   </motion.button>
+                ) : (
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {showDeleteConfirm === photo.id ? (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex items-center gap-1"
+                      >
+                        <button
+                          onClick={(e) => confirmDelete(photo.id, e)}
+                          className="p-2 bg-red-500 hover:bg-red-600 rounded-full text-white backdrop-blur-sm transition-colors"
+                        >
+                          <IconCheck className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={cancelDelete}
+                          className="p-2 bg-gray-500 hover:bg-gray-600 rounded-full text-white backdrop-blur-sm transition-colors"
+                        >
+                          <IconX className="w-4 h-4" />
+                        </button>
+                      </motion.div>
+                    ) : (
+                      <motion.button
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        onClick={(e) => handleDelete(photo.id, e)}
+                        className="p-2 bg-red-500/20 hover:bg-red-500/40 rounded-full text-white backdrop-blur-sm transition-colors"
+                      >
+                        <IconTrash className="w-4 h-4" />
+                      </motion.button>
+                    )}
+                  </div>
                 )}
               </div>
               <motion.div 
