@@ -77,6 +77,116 @@ const handleDownload = async (imageUrl: string, title: string) => {
   }
 };
 
+function EmptyStateIllustration() {
+  return (
+    <div className="w-full max-w-[300px] mx-auto mb-6">
+      <motion.svg
+        viewBox="0 0 400 300"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full h-auto"
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Background Circle */}
+        <motion.circle
+          cx="200"
+          cy="150"
+          r="120"
+          fill="#FFE3EC"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.5 }}
+        />
+
+        {/* Photo Frame */}
+        <motion.rect
+          x="120"
+          y="70"
+          width="160"
+          height="160"
+          rx="20"
+          fill="white"
+          stroke="#D291BC"
+          strokeWidth="4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        />
+
+        {/* Decorative Lines */}
+        <motion.path
+          d="M140 140 L260 140"
+          stroke="#D291BC"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray="220"
+          initial={{ strokeDashoffset: 220 }}
+          animate={{ strokeDashoffset: 0 }}
+          transition={{ delay: 0.6, duration: 0.8 }}
+        />
+        <motion.path
+          d="M140 160 L220 160"
+          stroke="#D291BC"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray="180"
+          initial={{ strokeDashoffset: 180 }}
+          animate={{ strokeDashoffset: 0 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+        />
+
+        {/* Image Icon */}
+        <motion.path
+          d="M160 100 L180 100 L190 110 L240 110 L240 180 L160 180 Z"
+          fill="#FFE3EC"
+          stroke="#D291BC"
+          strokeWidth="4"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ delay: 1, duration: 1 }}
+        />
+
+        {/* Sun/Circle Decoration */}
+        <motion.circle
+          cx="280"
+          cy="80"
+          r="15"
+          fill="#D291BC"
+          initial={{ scale: 0 }}
+          animate={{ scale: [0, 1.2, 1] }}
+          transition={{ delay: 1.2, duration: 0.5 }}
+        />
+
+        {/* Floating Hearts */}
+        {[
+          { cx: 300, cy: 200, delay: 1.4 },
+          { cx: 100, cy: 180, delay: 1.6 },
+          { cx: 260, cy: 240, delay: 1.8 }
+        ].map((heart, index) => (
+          <motion.path
+            key={index}
+            d={`M${heart.cx-10},${heart.cy} a5,5 0 0,1 10,0 a5,5 0 0,1 10,0 q0,10 -10,15 q-10,-5 -10,-15`}
+            fill="#D291BC"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{
+              scale: [0, 1.2, 1],
+              opacity: [0, 1, 1],
+              y: [0, -20, 0]
+            }}
+            transition={{
+              delay: heart.delay,
+              duration: 2,
+              repeat: Infinity,
+              repeatDelay: 1
+            }}
+          />
+        ))}
+      </motion.svg>
+    </div>
+  );
+}
+
 export default function GalleryPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
@@ -296,17 +406,37 @@ export default function GalleryPage() {
         />
       )}
 
-      {/* Empty State - Mobile optimized */}
+      {/* Empty State - Now with illustration */}
       {filteredPhotos.length === 0 && (
         <div className="text-center py-8 sm:py-12">
-          <p className="text-sm sm:text-base text-gray-500 px-4">
+          <EmptyStateIllustration />
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-sm sm:text-base text-gray-500 px-4"
+          >
             {selectedWeek 
               ? `Belum ada foto untuk minggu ke-${selectedWeek}. Tambahkan foto pertamamu!`
               : selectedTrimester !== null
               ? `Belum ada foto untuk ${weekRanges[selectedTrimester].label}. Tambahkan foto pertamamu!`
               : "Belum ada foto yang diunggah. Mulai dokumentasikan perjalanan kehamilanmu!"
             }
-          </p>
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="mt-6"
+          >
+            <Link
+              href="/main/gallery/upload"
+              className="inline-flex items-center gap-2 bg-[#D291BC] text-white px-6 py-2.5 rounded-xl hover:bg-[#c17ba6] transition-colors"
+            >
+              <IconPlus className="w-5 h-5" />
+              <span>Unggah Foto Baru</span>
+            </Link>
+          </motion.div>
         </div>
       )}
     </div>
