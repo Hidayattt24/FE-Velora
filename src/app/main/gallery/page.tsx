@@ -14,7 +14,7 @@ const photos = [
     title: "Minggu ke-12",
     week: 12,
     date: "12 Maret 2024",
-    imageUrl: "https://source.unsplash.com/random/800x600?pregnancy&1",
+    imageUrl: "/main/gallery/gallery.jpg",
     notes: "Pertama kali merasakan gerakan bayi!"
   },
   {
@@ -22,7 +22,7 @@ const photos = [
     title: "Minggu ke-16",
     week: 16,
     date: "9 April 2024",
-    imageUrl: "https://source.unsplash.com/random/800x600?pregnancy&2",
+    imageUrl: "/main/gallery/gallery.jpg",
     notes: "Baby bump mulai terlihat"
   },
   {
@@ -30,7 +30,7 @@ const photos = [
     title: "Minggu ke-20",
     week: 20,
     date: "7 Mei 2024",
-    imageUrl: "https://source.unsplash.com/random/800x600?pregnancy&3",
+    imageUrl: "/main/gallery/gallery.jpg",
     notes: "USG menunjukkan jenis kelamin bayi"
   },
   {
@@ -38,7 +38,7 @@ const photos = [
     title: "Minggu ke-24",
     week: 24,
     date: "4 Juni 2024",
-    imageUrl: "https://source.unsplash.com/random/800x600?pregnancy&4",
+    imageUrl: "/main/gallery/gallery.jpg",
     notes: "Perut semakin membesar"
   },
 ];
@@ -48,6 +48,34 @@ const weekRanges = [
   { label: "Trimester 2", range: [13, 27] },
   { label: "Trimester 3", range: [28, 40] }
 ];
+
+// Function to handle image download
+const handleDownload = async (imageUrl: string, title: string) => {
+  try {
+    // Fetch the image
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    
+    // Create a temporary link element
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    
+    // Set the download filename
+    const filename = `${title.replace(/\s+/g, '_').toLowerCase()}.jpg`;
+    link.download = filename;
+    
+    // Append to body, click and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up the URL object
+    window.URL.revokeObjectURL(link.href);
+  } catch (error) {
+    console.error('Error downloading image:', error);
+    alert('Gagal mengunduh gambar. Silakan coba lagi.');
+  }
+};
 
 export default function GalleryPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -224,7 +252,10 @@ export default function GalleryPage() {
                   >
                     <p className="text-sm sm:text-base text-gray-600">{photo.notes}</p>
                     <div className="flex justify-end">
-                      <button className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-[#D291BC] hover:text-[#c17ba6] transition-colors">
+                      <button 
+                        onClick={() => handleDownload(photo.imageUrl, photo.title)}
+                        className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-[#D291BC] hover:text-[#c17ba6] transition-colors"
+                      >
                         <IconDownload className="w-4 h-4 sm:w-5 sm:h-5" />
                         <span>Unduh Foto</span>
                       </button>
