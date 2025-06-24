@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useOutsideClick } from "@/lib/hooks/use-outside-click";
 import { cn } from "@/lib/utils";
+import { ProfileHeader } from "@/components/ui/profile-header";
 
 // Dummy data for demonstration
 const photos = [
@@ -256,16 +257,6 @@ export default function GalleryPage() {
   const [selectedTrimester, setSelectedTrimester] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    // Update time every minute
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   useOutsideClick(cardRef, () => {
     setSelectedId(null);
@@ -299,45 +290,7 @@ export default function GalleryPage() {
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-      {/* Profile Section - Simplified */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden">
-            <img
-              src="/main/gallery/photo-profile.jpg"
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div>
-            <p className="text-base sm:text-lg text-[#D291BC] mb-1">
-              Hi mom, <span className="font-medium">Sarah Johnson</span>! 👋
-            </p>
-            <h2 className="text-lg sm:text-xl font-semibold text-[#D291BC]">
-              @sarahmommy
-            </h2>
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="flex items-center gap-2 text-[#D291BC]">
-            <IconClock className="w-4 h-4" />
-            <time className="text-sm">
-              {currentTime.toLocaleDateString('id-ID', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </time>
-          </div>
-          <div className="text-sm text-[#D291BC] mt-1">
-            {currentTime.toLocaleTimeString('id-ID', {
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
-          </div>
-        </div>
-      </div>
+      <ProfileHeader />
 
       {/* Centered Header Section - Optimized for mobile */}
       <div className="text-center mb-4 sm:mb-8">
