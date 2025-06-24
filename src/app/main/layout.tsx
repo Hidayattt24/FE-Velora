@@ -1,10 +1,10 @@
 "use client";
 
 import { MainNav } from "@/components/MainNav";
-import {
+import { 
   IconPhoto,
   IconTimeline,
-  IconCalculator,
+  IconStethoscope,
   IconNotebook,
   IconSettings
 } from "@tabler/icons-react";
@@ -21,9 +21,9 @@ const navigationItems = [
     href: "/main/timeline"
   },
   {
-    label: "Kalkulator",
-    icon: <IconCalculator className="w-6 h-6" />,
-    href: "/main/calculator"
+    label: "Diagnosa",
+    icon: <IconStethoscope className="w-6 h-6" />,
+    href: "/main/diagnosa"
   },
   {
     label: "Jurnal",
