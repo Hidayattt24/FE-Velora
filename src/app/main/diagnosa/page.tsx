@@ -3,22 +3,30 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ProfileHeader } from "@/components/ui/profile-header";
-
-interface DiagnosaResult {
-  riskLevel: "Rendah" | "Sedang" | "Tinggi";
-  recommendations: string[];
-}
+import {
+  ageOptions,
+  bpOptions,
+  bsOptions,
+  tempOptions,
+  hrOptions,
+  type BloodPressureOption,
+  type HealthOption,
+} from "@/lib/data/health-parameters";
+import {
+  predictHealthRisk,
+  getRiskRecommendations,
+  type HealthRiskResponse
+} from "@/lib/services/health-risk";
 
 export default function DiagnosaPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<DiagnosaResult | null>(null);
+  const [result, setResult] = useState<HealthRiskResponse | null>(null);
   const [formData, setFormData] = useState({
-    age: "",
-    systolicBP: "",
-    diastolicBP: "",
-    bs: "",
-    bodyTemp: "",
-    heartRate: "",
+    age: ageOptions[0].value,
+    bp: bpOptions[0],
+    bs: bsOptions[0].value,
+    bodyTemp: tempOptions[0].value,
+    heartRate: hrOptions[0].value,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,20 +34,18 @@ export default function DiagnosaPage() {
     setIsLoading(true);
     
     try {
-      // TODO: Integrasi dengan backend API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Contoh hasil sementara
-      setResult({
-        riskLevel: "Rendah",
-        recommendations: [
-          "Lakukan pemeriksaan rutin setiap bulan",
-          "Jaga pola makan sehat dan seimbang",
-          "Lakukan olahraga ringan yang aman untuk ibu hamil",
-        ],
+      const result = await predictHealthRisk({
+        Age: formData.age,
+        SystolicBP: formData.bp.systolic,
+        DiastolicBP: formData.bp.diastolic,
+        BS: formData.bs,
+        BodyTemp: formData.bodyTemp,
+        HeartRate: formData.heartRate,
       });
+      setResult(result);
     } catch (error) {
       console.error("Error during diagnosis:", error);
+      alert("Terjadi kesalahan saat memproses data. Silakan coba lagi.");
     } finally {
       setIsLoading(false);
     }
@@ -59,95 +65,150 @@ export default function DiagnosaPage() {
             Diagnosa Risiko Kesehatan Ibu Hamil
           </h1>
           <p className="mt-2 text-sm text-[#D291BC]/80">
-            Masukkan data kesehatan Anda untuk mengetahui tingkat risiko kehamilan
+            Silakan jawab pertanyaan berikut untuk mengetahui tingkat risiko kesehatan Anda selama kehamilan
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-[#D291BC] mb-2">
-                Usia (tahun)
-              </label>
-              <input
-                type="number"
-                value={formData.age}
-                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                className="w-full px-4 py-2 rounded-xl border border-[#D291BC] focus:ring-2 focus:ring-[#D291BC]/50"
-                placeholder="Masukkan usia Anda"
-                required
-              />
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Age Selection */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-[#D291BC]">1. Berapakah usia Anda?</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {ageOptions.map((option: HealthOption) => (
+                <label
+                  key={option.value}
+                  className={`flex items-center p-4 rounded-xl border cursor-pointer transition-colors ${
+                    formData.age === option.value
+                      ? "border-[#D291BC] bg-[#FFE3EC]/20"
+                      : "border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="age"
+                    value={option.value}
+                    checked={formData.age === option.value}
+                    onChange={(e) => setFormData({ ...formData, age: Number(e.target.value) })}
+                    className="hidden"
+                  />
+                  <span className="text-sm text-gray-700">{option.label}</span>
+                </label>
+              ))}
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-[#D291BC] mb-2">
-                Tekanan Darah Sistolik (mmHg)
-              </label>
-              <input
-                type="number"
-                value={formData.systolicBP}
-                onChange={(e) => setFormData({ ...formData, systolicBP: e.target.value })}
-                className="w-full px-4 py-2 rounded-xl border border-[#D291BC] focus:ring-2 focus:ring-[#D291BC]/50"
-                placeholder="Contoh: 120"
-                required
-              />
+          {/* Blood Pressure Selection */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-[#D291BC]">
+              2. Bagaimana kondisi tekanan darah Anda?
+            </h3>
+            <div className="grid grid-cols-1 gap-3">
+              {bpOptions.map((option: BloodPressureOption) => (
+                <label
+                  key={option.systolic}
+                  className={`flex items-center p-4 rounded-xl border cursor-pointer transition-colors ${
+                    formData.bp.systolic === option.systolic
+                      ? "border-[#D291BC] bg-[#FFE3EC]/20"
+                      : "border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="bp"
+                    checked={formData.bp.systolic === option.systolic}
+                    onChange={() => setFormData({ ...formData, bp: option })}
+                    className="hidden"
+                  />
+                  <span className="text-sm text-gray-700">{option.label}</span>
+                </label>
+              ))}
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-[#D291BC] mb-2">
-                Tekanan Darah Diastolik (mmHg)
-              </label>
-              <input
-                type="number"
-                value={formData.diastolicBP}
-                onChange={(e) => setFormData({ ...formData, diastolicBP: e.target.value })}
-                className="w-full px-4 py-2 rounded-xl border border-[#D291BC] focus:ring-2 focus:ring-[#D291BC]/50"
-                placeholder="Contoh: 80"
-                required
-              />
+          {/* Blood Sugar Selection */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-[#D291BC]">
+              3. Bagaimana level gula darah Anda?
+            </h3>
+            <div className="grid grid-cols-1 gap-3">
+              {bsOptions.map((option: HealthOption) => (
+                <label
+                  key={option.value}
+                  className={`flex items-center p-4 rounded-xl border cursor-pointer transition-colors ${
+                    formData.bs === option.value
+                      ? "border-[#D291BC] bg-[#FFE3EC]/20"
+                      : "border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="bs"
+                    value={option.value}
+                    checked={formData.bs === option.value}
+                    onChange={(e) => setFormData({ ...formData, bs: Number(e.target.value) })}
+                    className="hidden"
+                  />
+                  <span className="text-sm text-gray-700">{option.label}</span>
+                </label>
+              ))}
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-[#D291BC] mb-2">
-                Gula Darah (mg/dL)
-              </label>
-              <input
-                type="number"
-                value={formData.bs}
-                onChange={(e) => setFormData({ ...formData, bs: e.target.value })}
-                className="w-full px-4 py-2 rounded-xl border border-[#D291BC] focus:ring-2 focus:ring-[#D291BC]/50"
-                placeholder="Masukkan kadar gula darah"
-                required
-              />
+          {/* Body Temperature Selection */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-[#D291BC]">
+              4. Bagaimana suhu tubuh Anda?
+            </h3>
+            <div className="grid grid-cols-1 gap-3">
+              {tempOptions.map((option: HealthOption) => (
+                <label
+                  key={option.value}
+                  className={`flex items-center p-4 rounded-xl border cursor-pointer transition-colors ${
+                    formData.bodyTemp === option.value
+                      ? "border-[#D291BC] bg-[#FFE3EC]/20"
+                      : "border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="bodyTemp"
+                    value={option.value}
+                    checked={formData.bodyTemp === option.value}
+                    onChange={(e) => setFormData({ ...formData, bodyTemp: Number(e.target.value) })}
+                    className="hidden"
+                  />
+                  <span className="text-sm text-gray-700">{option.label}</span>
+                </label>
+              ))}
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-[#D291BC] mb-2">
-                Suhu Tubuh (°C)
-              </label>
-              <input
-                type="number"
-                value={formData.bodyTemp}
-                onChange={(e) => setFormData({ ...formData, bodyTemp: e.target.value })}
-                className="w-full px-4 py-2 rounded-xl border border-[#D291BC] focus:ring-2 focus:ring-[#D291BC]/50"
-                placeholder="Contoh: 36.5"
-                step="0.1"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-[#D291BC] mb-2">
-                Detak Jantung (bpm)
-              </label>
-              <input
-                type="number"
-                value={formData.heartRate}
-                onChange={(e) => setFormData({ ...formData, heartRate: e.target.value })}
-                className="w-full px-4 py-2 rounded-xl border border-[#D291BC] focus:ring-2 focus:ring-[#D291BC]/50"
-                placeholder="Contoh: 80"
-                required
-              />
+          {/* Heart Rate Selection */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-[#D291BC]">
+              5. Bagaimana detak jantung Anda?
+            </h3>
+            <div className="grid grid-cols-1 gap-3">
+              {hrOptions.map((option: HealthOption) => (
+                <label
+                  key={option.value}
+                  className={`flex items-center p-4 rounded-xl border cursor-pointer transition-colors ${
+                    formData.heartRate === option.value
+                      ? "border-[#D291BC] bg-[#FFE3EC]/20"
+                      : "border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="heartRate"
+                    value={option.value}
+                    checked={formData.heartRate === option.value}
+                    onChange={(e) => setFormData({ ...formData, heartRate: Number(e.target.value) })}
+                    className="hidden"
+                  />
+                  <span className="text-sm text-gray-700">{option.label}</span>
+                </label>
+              ))}
             </div>
           </div>
 
@@ -173,17 +234,19 @@ export default function DiagnosaPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Tingkat Risiko:</p>
                 <p className={`text-lg font-bold ${
-                  result.riskLevel === "Tinggi" ? "text-red-500" :
-                  result.riskLevel === "Sedang" ? "text-yellow-500" :
+                  result.risk_level === "high risk" ? "text-red-500" :
+                  result.risk_level === "mid risk" ? "text-yellow-500" :
                   "text-green-500"
                 }`}>
-                  {result.riskLevel}
+                  {result.risk_level === "high risk" ? "RISIKO TINGGI" :
+                   result.risk_level === "mid risk" ? "RISIKO MENENGAH" :
+                   "RISIKO RENDAH"}
                 </p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-2">Rekomendasi:</p>
                 <ul className="list-disc list-inside space-y-2">
-                  {result.recommendations.map((rec, index) => (
+                  {getRiskRecommendations(result.risk_level).map((rec: string, index: number) => (
                     <li key={index} className="text-sm text-gray-700">
                       {rec}
                     </li>
@@ -193,6 +256,15 @@ export default function DiagnosaPage() {
             </div>
           </motion.div>
         )}
+
+        {/* Disclaimer */}
+        <div className="mt-8 text-center text-sm text-gray-500">
+          <p>Dibuat dengan ❤️ untuk kesehatan ibu hamil</p>
+          <p className="mt-2">
+            ⚠️ <strong>Perhatian</strong>: Aplikasi ini hanya alat bantu dan tidak menggantikan pemeriksaan medis profesional.
+            Selalu konsultasikan kondisi Anda dengan dokter atau bidan yang menangani kehamilan Anda.
+          </p>
+        </div>
       </motion.div>
     </div>
   );
