@@ -129,15 +129,7 @@ const PregnantWomanIcon = () => (
   </motion.svg>
 );
 
-// Add age mapping constant
-const ageGroupMapping = {
-  1: 18, // Di bawah 20 tahun (using 18 as average)
-  2: 22, // 20-24 tahun (using middle value)
-  3: 27, // 25-29 tahun
-  4: 32, // 30-34 tahun
-  5: 37, // 35-39 tahun
-  6: 42  // 40 tahun ke atas (using 42 as representative)
-};
+// Age mapping is now handled directly in the ageOptions array in health-parameters.ts
 
 export default function DiagnosaPage() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -198,13 +190,14 @@ export default function DiagnosaPage() {
       // Delay for loader animation
       await new Promise(resolve => setTimeout(resolve, 10000)); // 10 seconds total for loading states
       
+      // Convert age to number and ensure all values are numbers
       const result = await predictHealthRisk({
-        Age: ageGroupMapping[formData.age as keyof typeof ageGroupMapping],
-        SystolicBP: formData.bp.systolic,
-        DiastolicBP: formData.bp.diastolic,
-        BS: formData.bs,
-        BodyTemp: formData.bodyTemp,
-        HeartRate: formData.heartRate,
+        Age: Number(formData.age),
+        SystolicBP: Number(formData.bp.systolic),
+        DiastolicBP: Number(formData.bp.diastolic),
+        BS: Number(formData.bs),
+        BodyTemp: Number(formData.bodyTemp),
+        HeartRate: Number(formData.heartRate),
       });
       setResult(result);
       setShowModal(true);
@@ -220,29 +213,44 @@ export default function DiagnosaPage() {
     if (!result) return;
 
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const margin = 20;
+    const contentWidth = pageWidth - (2 * margin);
     
-    // Add header with improved gradient-like effect
-    doc.setFillColor(210, 145, 188); // #D291BC
-    doc.rect(0, 0, 210, 45, "F");
-    doc.setFillColor(255, 192, 203); // pink
-    doc.rect(0, 40, 210, 5, "F");
-    
-    // Add decorative elements
-    doc.setDrawColor(255, 255, 255);
-    doc.setLineWidth(0.5);
-    for (let i = 0; i < 5; i++) {
-      doc.line(20 + i * 40, 5, 30 + i * 40, 35);
-    }
-    
-    // Add title with improved styling
+    // Helper function to add a section title
+    const addSectionTitle = (text: string, y: number) => {
+      doc.setDrawColor(70, 130, 180); // Steel blue
+      doc.setLineWidth(0.5);
+      doc.line(margin, y, pageWidth - margin, y);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(70, 130, 180);
+      doc.text(text, margin, y + 7);
+      return y + 15;
+    };
+
+    // Helper function to add a field with label
+    const addField = (label: string, value: string, x: number, y: number) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(label + ":", x, y);
+      doc.setFont("helvetica", "normal");
+      doc.text(value, x + doc.getTextWidth(label + ": "), y);
+      return y + 7;
+    };
+
+    // Header
+    doc.setFillColor(240, 248, 255); // Alice blue
+    doc.rect(0, 0, pageWidth, 40, "F");
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(28);
-    doc.setTextColor(255, 255, 255);
-    doc.text("VELORA", 20, 25);
+    doc.setFontSize(10);
+    doc.setTextColor(70, 130, 180);
+    doc.text("Hasil Diagnosa dari Website Velora", pageWidth/2, 15, { align: "center" });
     doc.setFontSize(16);
-    doc.text("Sistem Prediksi Risiko Kesehatan Ibu Hamil", 20, 35);
-    
-    // Add date and time with improved styling
+    doc.text("LAPORAN DIAGNOSA PASIEN", pageWidth/2, 25, { align: "center" });
+
+    // Current date and time
     const currentDate = new Date().toLocaleDateString('id-ID', { 
       weekday: 'long', 
       year: 'numeric', 
@@ -251,104 +259,106 @@ export default function DiagnosaPage() {
       hour: '2-digit',
       minute: '2-digit'
     });
-    doc.setFontSize(10);
-    doc.text(currentDate, 20, 42);
-    
-    // Add user data section with improved styling
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.roundedRect(15, 55, 180, 45, 3, 3, 'S');
-    doc.setFillColor(248, 231, 241); // Light pink background
-    doc.roundedRect(15, 55, 180, 45, 3, 3, 'F');
-    doc.text("Data Pasien:", 20, 65);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.text(`Nama: ${userData.nama}`, 25, 75);
-    doc.text(`Usia: ${userData.usia} tahun`, 25, 82);
-    doc.text(`Golongan Darah: ${userData.golonganDarah}`, 25, 89);
-    
-    // Add risk level section with improved styling
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("Tingkat Risiko:", 20, 115);
-    
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text(currentDate, pageWidth/2, 35, { align: "center" });
+
+    let yPos = 50;
+
+    // Patient Information Section
+    yPos = addSectionTitle("INFORMASI PASIEN", yPos);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(margin, yPos, contentWidth, 35, 3, 3, "F");
+    yPos += 5;
+    yPos = addField("Nama Pasien", userData.nama, margin + 5, yPos);
+    yPos = addField("Usia", userData.usia + " tahun", margin + 5, yPos);
+    yPos = addField("Golongan Darah", userData.golonganDarah, margin + 5, yPos);
+    yPos = addField("Tanggal Pemeriksaan", currentDate, margin + 5, yPos);
+    yPos += 10;
+
+    // Risk Level Section
+    yPos = addSectionTitle("HASIL ANALISIS RISIKO", yPos);
     const riskColor = 
-      result.risk_level === "high risk" ? "#FF0000" :
-      result.risk_level === "mid risk" ? "#FFA500" : "#008000";
+      result.risk_level === "high risk" ? { r: 220, g: 53, b: 69 } :  // Bootstrap danger
+      result.risk_level === "mid risk" ? { r: 255, g: 193, b: 7 } :   // Bootstrap warning
+      { r: 40, g: 167, b: 69 };                                       // Bootstrap success
     
-    doc.setFillColor(riskColor);
-    doc.roundedRect(15, 120, 180, 30, 3, 3, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(18);
+    doc.setFillColor(riskColor.r, riskColor.g, riskColor.b);
+    doc.roundedRect(margin, yPos, contentWidth, 25, 3, 3, "F");
+    doc.setTextColor(255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
     doc.text(
       result.risk_level === "high risk" ? "RISIKO TINGGI" :
       result.risk_level === "mid risk" ? "RISIKO MENENGAH" : "RISIKO RENDAH",
-      105, 138, { align: "center" }
+      pageWidth/2, yPos + 16, { align: "center" }
     );
-    
-    // Add vital signs section with improved grid layout
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(14);
-    doc.text("Parameter Vital:", 20, 165);
-    
-    // Create a 2x2 grid for vital signs
-    const gridX = [15, 105];
-    const gridY = [170, 200];
-    const gridData = [
-      [`Tekanan Darah: ${formData.bp.systolic}/${formData.bp.diastolic} mmHg`, `Gula Darah: ${formData.bs} mmol/L`],
-      [`Suhu Tubuh: ${formData.bodyTemp}°C`, `Detak Jantung: ${formData.heartRate} bpm`]
+    yPos += 35;
+
+    // Vital Signs Section
+    yPos = addSectionTitle("PARAMETER VITAL", yPos);
+    const vitalSigns = [
+      { label: "Tekanan Darah", value: `${formData.bp.systolic}/${formData.bp.diastolic} mmHg` },
+      { label: "Gula Darah", value: `${formData.bs} mmol/L` },
+      { label: "Suhu Tubuh", value: `${formData.bodyTemp}°C` },
+      { label: "Detak Jantung", value: `${formData.heartRate} bpm` }
     ];
-    
-    gridData.forEach((row, i) => {
-      row.forEach((cell, j) => {
-        doc.setFillColor(248, 231, 241);
-        doc.roundedRect(gridX[j], gridY[i], 85, 25, 3, 3, 'FD');
-        doc.setFontSize(11);
-        doc.text(cell, gridX[j] + 5, gridY[i] + 15);
-      });
+
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(margin, yPos, contentWidth, 35, 3, 3, "F");
+    yPos += 5;
+    vitalSigns.forEach((sign, index) => {
+      const x = margin + 5 + (index % 2) * (contentWidth/2);
+      const y = yPos + Math.floor(index/2) * 15;
+      addField(sign.label, sign.value, x, y);
     });
-    
-    // Add recommendations with improved styling
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text("Rekomendasi:", 20, 240);
+    yPos += 45;
+
+    // Recommendations Section
+    yPos = addSectionTitle("REKOMENDASI", yPos);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(margin, yPos, contentWidth, 50, 3, 3, "F");
+    yPos += 5;
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
+    doc.setFontSize(10);
+    doc.setTextColor(60);
     
     const recommendations = getRiskRecommendations(result.risk_level);
-    let yPos = 250;
     recommendations.forEach((rec) => {
-      const lines = doc.splitTextToSize(`• ${rec}`, 170);
+      const lines = doc.splitTextToSize(`• ${rec}`, contentWidth - 10);
       lines.forEach((line: string) => {
-        doc.text(line, 20, yPos);
-        yPos += 7;
+        doc.text(line, margin + 5, yPos);
+        yPos += 6;
       });
     });
-    
-    // Add disclaimer with improved styling
-    doc.setFillColor(255, 247, 237); // warm background
-    doc.roundedRect(15, yPos + 10, 180, 35, 3, 3, 'F');
-    doc.setTextColor(100);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("PERHATIAN PENTING:", 20, yPos + 20);
+    yPos += 10;
+
+    // Disclaimer Section
+    yPos = addSectionTitle("PERHATIAN PENTING", yPos);
+    doc.setFillColor(255, 243, 205);  // Light warning color
+    doc.roundedRect(margin, yPos, contentWidth, 30, 3, 3, "F");
     doc.setFont("helvetica", "normal");
-    doc.text([
-      "Hasil diagnosa ini hanya bersifat prediktif dengan tingkat akurasi 84.21% dan",
-      "tidak menggantikan pemeriksaan langsung oleh tenaga medis profesional.",
-      "Selalu konsultasikan kondisi Anda dengan dokter atau bidan yang menangani",
-      "kehamilan Anda untuk mendapatkan penanganan yang tepat."
-    ], 20, yPos + 27);
-    
-    // Add footer with improved styling
-    doc.setFillColor(210, 145, 188, 0.1);
-    doc.rect(0, 280, 210, 17, "F");
+    doc.setFontSize(9);
+    doc.setTextColor(133, 100, 4);  // Dark warning color
+    const disclaimer = [
+      "Hasil diagnosa ini hanya bersifat prediktif dengan tingkat akurasi 84.21% dan tidak menggantikan",
+      "pemeriksaan langsung oleh tenaga medis profesional. Selalu konsultasikan kondisi Anda dengan",
+      "dokter atau bidan yang menangani kehamilan Anda untuk mendapatkan penanganan yang tepat."
+    ];
+    disclaimer.forEach((line, index) => {
+      doc.text(line, margin + 5, yPos + 7 + (index * 5));
+    });
+
+    // Footer
+    doc.setFillColor(248, 250, 252);
+    doc.rect(0, doc.internal.pageSize.height - 20, pageWidth, 20, "F");
     doc.setFontSize(8);
-    doc.text("Dicetak melalui Aplikasi Velora - Sistem Prediksi Risiko Kesehatan Ibu Hamil", 105, 285, { align: "center" });
-    doc.text(currentDate, 105, 290, { align: "center" });
-    
+    doc.setTextColor(100);
+    doc.text("Dicetak melalui Aplikasi Velora - Sistem Prediksi Risiko Kesehatan Ibu Hamil", pageWidth/2, doc.internal.pageSize.height - 15, { align: "center" });
+    doc.text(`Halaman 1 dari 1 | ${currentDate}`, pageWidth/2, doc.internal.pageSize.height - 8, { align: "center" });
+
     // Save the PDF
-    doc.save(`Diagnosa_${userData.nama.replace(/\s+/g, '_')}.pdf`);
+    doc.save(`Laporan_Diagnosa_${userData.nama.replace(/\s+/g, '_')}.pdf`);
   };
 
   const renderStep = () => {
@@ -438,21 +448,21 @@ export default function DiagnosaPage() {
                 <input
                   type="radio"
                   name="age"
-                  value={1}
-                  checked={formData.age === 1}
+                  value={ageOptions[0].value}
+                  checked={formData.age === ageOptions[0].value}
                   onChange={(e) => {
                     setFormData({ ...formData, age: Number(e.target.value) });
                   }}
                   className="hidden"
                 />
-                <span className="text-lg text-[#D291BC]">Di bawah 20 tahun (remaja)</span>
+                <span className="text-lg text-[#D291BC]">{ageOptions[0].label}</span>
               </motion.label>
 
               <motion.label
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className={`flex items-center p-6 rounded-xl border-2 cursor-pointer transition-all ${
-                  formData.age === 2
+                  formData.age === ageOptions[1].value
                     ? "border-[#D291BC] bg-pink-50 shadow-md"
                     : "border-pink-100 hover:border-pink-200 hover:bg-pink-50/30"
                 }`}
@@ -460,21 +470,21 @@ export default function DiagnosaPage() {
                 <input
                   type="radio"
                   name="age"
-                  value={2}
-                  checked={formData.age === 2}
+                  value={ageOptions[1].value}
+                  checked={formData.age === ageOptions[1].value}
                   onChange={(e) => {
                     setFormData({ ...formData, age: Number(e.target.value) });
                   }}
                   className="hidden"
                 />
-                <span className="text-lg text-[#D291BC]">20–24 tahun</span>
+                <span className="text-lg text-[#D291BC]">{ageOptions[1].label}</span>
               </motion.label>
 
               <motion.label
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className={`flex items-center p-6 rounded-xl border-2 cursor-pointer transition-all ${
-                  formData.age === 3
+                  formData.age === ageOptions[2].value
                     ? "border-[#D291BC] bg-pink-50 shadow-md"
                     : "border-pink-100 hover:border-pink-200 hover:bg-pink-50/30"
                 }`}
@@ -482,21 +492,21 @@ export default function DiagnosaPage() {
                 <input
                   type="radio"
                   name="age"
-                  value={3}
-                  checked={formData.age === 3}
+                  value={ageOptions[2].value}
+                  checked={formData.age === ageOptions[2].value}
                   onChange={(e) => {
                     setFormData({ ...formData, age: Number(e.target.value) });
                   }}
                   className="hidden"
                 />
-                <span className="text-lg text-[#D291BC]">25–29 tahun</span>
+                <span className="text-lg text-[#D291BC]">{ageOptions[2].label}</span>
               </motion.label>
 
               <motion.label
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className={`flex items-center p-6 rounded-xl border-2 cursor-pointer transition-all ${
-                  formData.age === 4
+                  formData.age === ageOptions[3].value
                     ? "border-[#D291BC] bg-pink-50 shadow-md"
                     : "border-pink-100 hover:border-pink-200 hover:bg-pink-50/30"
                 }`}
@@ -504,21 +514,21 @@ export default function DiagnosaPage() {
                 <input
                   type="radio"
                   name="age"
-                  value={4}
-                  checked={formData.age === 4}
+                  value={ageOptions[3].value}
+                  checked={formData.age === ageOptions[3].value}
                   onChange={(e) => {
                     setFormData({ ...formData, age: Number(e.target.value) });
                   }}
                   className="hidden"
                 />
-                <span className="text-lg text-[#D291BC]">30–34 tahun</span>
+                <span className="text-lg text-[#D291BC]">{ageOptions[3].label}</span>
               </motion.label>
 
               <motion.label
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className={`flex items-center p-6 rounded-xl border-2 cursor-pointer transition-all ${
-                  formData.age === 5
+                  formData.age === ageOptions[4].value
                     ? "border-[#D291BC] bg-pink-50 shadow-md"
                     : "border-pink-100 hover:border-pink-200 hover:bg-pink-50/30"
                 }`}
@@ -526,21 +536,21 @@ export default function DiagnosaPage() {
                 <input
                   type="radio"
                   name="age"
-                  value={5}
-                  checked={formData.age === 5}
+                  value={ageOptions[4].value}
+                  checked={formData.age === ageOptions[4].value}
                   onChange={(e) => {
                     setFormData({ ...formData, age: Number(e.target.value) });
                   }}
                   className="hidden"
                 />
-                <span className="text-lg text-[#D291BC]">35–39 tahun</span>
+                <span className="text-lg text-[#D291BC]">{ageOptions[4].label}</span>
               </motion.label>
 
               <motion.label
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className={`flex items-center p-6 rounded-xl border-2 cursor-pointer transition-all ${
-                  formData.age === 6
+                  formData.age === ageOptions[5].value
                     ? "border-[#D291BC] bg-pink-50 shadow-md"
                     : "border-pink-100 hover:border-pink-200 hover:bg-pink-50/30"
                 }`}
@@ -548,14 +558,14 @@ export default function DiagnosaPage() {
                 <input
                   type="radio"
                   name="age"
-                  value={6}
-                  checked={formData.age === 6}
+                  value={ageOptions[5].value}
+                  checked={formData.age === ageOptions[5].value}
                   onChange={(e) => {
                     setFormData({ ...formData, age: Number(e.target.value) });
                   }}
                   className="hidden"
                 />
-                <span className="text-lg text-[#D291BC]">40 tahun ke atas</span>
+                <span className="text-lg text-[#D291BC]">{ageOptions[5].label}</span>
               </motion.label>
             </div>
           </motion.div>
