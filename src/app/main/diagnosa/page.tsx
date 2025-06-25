@@ -428,7 +428,6 @@ export default function DiagnosaPage() {
                   checked={formData.age === 1}
                   onChange={(e) => {
                     setFormData({ ...formData, age: Number(e.target.value) });
-                    setTimeout(handleNext, 500);
                   }}
                   className="hidden"
                 />
@@ -451,7 +450,6 @@ export default function DiagnosaPage() {
                   checked={formData.age === 2}
                   onChange={(e) => {
                     setFormData({ ...formData, age: Number(e.target.value) });
-                    setTimeout(handleNext, 500);
                   }}
                   className="hidden"
                 />
@@ -474,7 +472,6 @@ export default function DiagnosaPage() {
                   checked={formData.age === 3}
                   onChange={(e) => {
                     setFormData({ ...formData, age: Number(e.target.value) });
-                    setTimeout(handleNext, 500);
                   }}
                   className="hidden"
                 />
@@ -497,7 +494,6 @@ export default function DiagnosaPage() {
                   checked={formData.age === 4}
                   onChange={(e) => {
                     setFormData({ ...formData, age: Number(e.target.value) });
-                    setTimeout(handleNext, 500);
                   }}
                   className="hidden"
                 />
@@ -520,7 +516,6 @@ export default function DiagnosaPage() {
                   checked={formData.age === 5}
                   onChange={(e) => {
                     setFormData({ ...formData, age: Number(e.target.value) });
-                    setTimeout(handleNext, 500);
                   }}
                   className="hidden"
                 />
@@ -543,7 +538,6 @@ export default function DiagnosaPage() {
                   checked={formData.age === 6}
                   onChange={(e) => {
                     setFormData({ ...formData, age: Number(e.target.value) });
-                    setTimeout(handleNext, 500);
                   }}
                   className="hidden"
                 />
