@@ -53,10 +53,11 @@ const InfoIcon = () => (
 );
 
 const loadingStates = [
-  { text: "Memproses data kesehatan..." },
+  { text: "Memproses data kesehatan Anda..." },
   { text: "Menganalisis parameter vital..." },
-  { text: "Menghitung tingkat risiko..." },
-  { text: "Menyiapkan rekomendasi..." }
+  { text: "Menghitung tingkat risiko kehamilan..." },
+  { text: "Menyiapkan rekomendasi kesehatan..." },
+  { text: "Mempersiapkan hasil analisis..." }
 ];
 
 const steps = [
@@ -194,6 +195,9 @@ export default function DiagnosaPage() {
     setIsLoading(true);
     
     try {
+      // Delay for loader animation
+      await new Promise(resolve => setTimeout(resolve, 10000)); // 10 seconds total for loading states
+      
       const result = await predictHealthRisk({
         Age: ageGroupMapping[formData.age as keyof typeof ageGroupMapping],
         SystolicBP: formData.bp.systolic,
@@ -748,11 +752,7 @@ export default function DiagnosaPage() {
                 disabled={isLoading}
                 className="flex-1 bg-gradient-to-r from-[#D291BC] to-pink-400 text-white rounded-xl py-6 text-xl font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? (
-                  <MultiStepLoader loadingStates={loadingStates} loading={true} />
-                ) : (
-                  "Analisis Risiko"
-                )}
+                Analisis Risiko
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -859,6 +859,9 @@ export default function DiagnosaPage() {
           )}
         </div>
       </div>
+
+      {/* Loading Overlay */}
+      <MultiStepLoader loadingStates={loadingStates} loading={isLoading} duration={2000} loop={false} />
 
       {/* Result Modal */}
       {showModal && result && (
