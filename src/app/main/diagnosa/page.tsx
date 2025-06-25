@@ -91,6 +91,43 @@ const riskLevelExplanations = {
   }
 };
 
+// Add new PregnantWomanIcon component with Framer Motion
+const PregnantWomanIcon = () => (
+  <motion.svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="120"
+    height="60"
+    viewBox="0 0 24 24"
+    initial={{ scale: 0.9 }}
+    animate={{ 
+      scale: [0.9, 1, 0.9]
+    }}
+    transition={{ 
+      duration: 2,
+      repeat: Infinity,
+      ease: "easeInOut"
+    }}
+    className="text-[#D291BC]"
+  >
+    {/* Heart Monitor Line */}
+    <motion.path
+      initial={{ pathLength: 0 }}
+      animate={{ pathLength: 1 }}
+      transition={{
+        duration: 1.5,
+        repeat: Infinity,
+        ease: "linear"
+      }}
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+      d="M2 12h3l2-3 4 6 2-9 2 12 2-6 3 3h4"
+    />
+  </motion.svg>
+);
+
 export default function DiagnosaPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -170,93 +207,131 @@ export default function DiagnosaPage() {
 
     const doc = new jsPDF();
     
-    // Add header with gradient-like effect
+    // Add header with improved gradient-like effect
     doc.setFillColor(210, 145, 188); // #D291BC
-    doc.rect(0, 0, 210, 40, "F");
+    doc.rect(0, 0, 210, 45, "F");
     doc.setFillColor(255, 192, 203); // pink
-    doc.rect(0, 35, 210, 5, "F");
+    doc.rect(0, 40, 210, 5, "F");
     
-    // Add title
+    // Add decorative elements
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(0.5);
+    for (let i = 0; i < 5; i++) {
+      doc.line(20 + i * 40, 5, 30 + i * 40, 35);
+    }
+    
+    // Add title with improved styling
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(24);
+    doc.setFontSize(28);
     doc.setTextColor(255, 255, 255);
-    doc.text("VELORA", 20, 20);
+    doc.text("VELORA", 20, 25);
     doc.setFontSize(16);
-    doc.text("Sistem Prediksi Risiko Kesehatan Ibu Hamil", 20, 30);
+    doc.text("Sistem Prediksi Risiko Kesehatan Ibu Hamil", 20, 35);
     
-    // Add user data section
+    // Add date and time with improved styling
+    const currentDate = new Date().toLocaleDateString('id-ID', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    doc.setFontSize(10);
+    doc.text(currentDate, 20, 42);
+    
+    // Add user data section with improved styling
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
-    doc.roundedRect(20, 50, 170, 40, 3, 3, "S");
-    doc.text("Data Pasien:", 25, 60);
+    doc.roundedRect(15, 55, 180, 45, 3, 3, 'S');
+    doc.setFillColor(248, 231, 241); // Light pink background
+    doc.roundedRect(15, 55, 180, 45, 3, 3, 'F');
+    doc.text("Data Pasien:", 20, 65);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
-    doc.text(`Nama: ${userData.nama}`, 25, 70);
-    doc.text(`Usia: ${userData.usia} tahun`, 25, 77);
-    doc.text(`Golongan Darah: ${userData.golonganDarah}`, 25, 84);
+    doc.text(`Nama: ${userData.nama}`, 25, 75);
+    doc.text(`Usia: ${userData.usia} tahun`, 25, 82);
+    doc.text(`Golongan Darah: ${userData.golonganDarah}`, 25, 89);
     
-    // Add risk level section with colored box
+    // Add risk level section with improved styling
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Tingkat Risiko:", 25, 105);
+    doc.text("Tingkat Risiko:", 20, 115);
     
     const riskColor = 
       result.risk_level === "high risk" ? "#FF0000" :
       result.risk_level === "mid risk" ? "#FFA500" : "#008000";
     
     doc.setFillColor(riskColor);
-    doc.roundedRect(20, 110, 170, 25, 3, 3, "F");
+    doc.roundedRect(15, 120, 180, 30, 3, 3, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(16);
+    doc.setFontSize(18);
     doc.text(
       result.risk_level === "high risk" ? "RISIKO TINGGI" :
       result.risk_level === "mid risk" ? "RISIKO MENENGAH" : "RISIKO RENDAH",
-      105, 125, { align: "center" }
+      105, 138, { align: "center" }
     );
     
-    // Add vital signs section
+    // Add vital signs section with improved grid layout
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(14);
-    doc.text("Parameter Vital:", 25, 150);
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text(`• Tekanan Darah: ${formData.bp.systolic}/${formData.bp.diastolic} mmHg`, 30, 160);
-    doc.text(`• Gula Darah: ${formData.bs} mmol/L`, 30, 167);
-    doc.text(`• Suhu Tubuh: ${formData.bodyTemp}°C`, 30, 174);
-    doc.text(`• Detak Jantung: ${formData.heartRate} bpm`, 30, 181);
+    doc.text("Parameter Vital:", 20, 165);
     
-    // Add recommendations
+    // Create a 2x2 grid for vital signs
+    const gridX = [15, 105];
+    const gridY = [170, 200];
+    const gridData = [
+      [`Tekanan Darah: ${formData.bp.systolic}/${formData.bp.diastolic} mmHg`, `Gula Darah: ${formData.bs} mmol/L`],
+      [`Suhu Tubuh: ${formData.bodyTemp}°C`, `Detak Jantung: ${formData.heartRate} bpm`]
+    ];
+    
+    gridData.forEach((row, i) => {
+      row.forEach((cell, j) => {
+        doc.setFillColor(248, 231, 241);
+        doc.roundedRect(gridX[j], gridY[i], 85, 25, 3, 3, 'FD');
+        doc.setFontSize(11);
+        doc.text(cell, gridX[j] + 5, gridY[i] + 15);
+      });
+    });
+    
+    // Add recommendations with improved styling
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
-    doc.text("Rekomendasi:", 25, 200);
+    doc.text("Rekomendasi:", 20, 240);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
+    doc.setFontSize(11);
     
     const recommendations = getRiskRecommendations(result.risk_level);
-    let yPos = 210;
+    let yPos = 250;
     recommendations.forEach((rec) => {
-      const lines = doc.splitTextToSize(rec, 160);
+      const lines = doc.splitTextToSize(`• ${rec}`, 170);
       lines.forEach((line: string) => {
-        doc.text(`• ${line}`, 30, yPos);
+        doc.text(line, 20, yPos);
         yPos += 7;
       });
     });
     
-    // Add disclaimer
+    // Add disclaimer with improved styling
     doc.setFillColor(255, 247, 237); // warm background
-    doc.roundedRect(20, yPos + 10, 170, 35, 3, 3, "F");
+    doc.roundedRect(15, yPos + 10, 180, 35, 3, 3, 'F');
     doc.setTextColor(100);
     doc.setFontSize(10);
-    doc.text("PERHATIAN PENTING:", 25, yPos + 20);
-    doc.text("Hasil diagnosa ini hanya bersifat prediktif dengan tingkat akurasi 84.21% dan", 25, yPos + 27);
-    doc.text("tidak menggantikan pemeriksaan langsung oleh tenaga medis profesional.", 25, yPos + 34);
-    doc.text("Selalu konsultasikan kondisi Anda dengan dokter atau bidan yang menangani", 25, yPos + 41);
-    doc.text("kehamilan Anda untuk mendapatkan penanganan yang tepat.", 25, yPos + 48);
+    doc.setFont("helvetica", "bold");
+    doc.text("PERHATIAN PENTING:", 20, yPos + 20);
+    doc.setFont("helvetica", "normal");
+    doc.text([
+      "Hasil diagnosa ini hanya bersifat prediktif dengan tingkat akurasi 84.21% dan",
+      "tidak menggantikan pemeriksaan langsung oleh tenaga medis profesional.",
+      "Selalu konsultasikan kondisi Anda dengan dokter atau bidan yang menangani",
+      "kehamilan Anda untuk mendapatkan penanganan yang tepat."
+    ], 20, yPos + 27);
     
-    // Add footer
+    // Add footer with improved styling
+    doc.setFillColor(210, 145, 188, 0.1);
+    doc.rect(0, 280, 210, 17, "F");
     doc.setFontSize(8);
     doc.text("Dicetak melalui Aplikasi Velora - Sistem Prediksi Risiko Kesehatan Ibu Hamil", 105, 285, { align: "center" });
-    doc.text(new Date().toLocaleString(), 105, 290, { align: "center" });
+    doc.text(currentDate, 105, 290, { align: "center" });
     
     // Save the PDF
     doc.save(`Diagnosa_${userData.nama.replace(/\s+/g, '_')}.pdf`);
@@ -335,33 +410,145 @@ export default function DiagnosaPage() {
             exit={{ opacity: 0, x: -20 }}
             className="bg-gradient-to-br from-white to-pink-50 rounded-2xl p-8 shadow-lg border border-pink-100"
           >
-            <h3 className="text-2xl font-bold text-[#D291BC] mb-6">Berapakah usia kehamilan Anda?</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {ageOptions.map((option: HealthOption) => (
-                <motion.label
-                  key={option.value}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`flex items-center p-6 rounded-xl border-2 cursor-pointer transition-all ${
-                    formData.age === option.value
-                      ? "border-[#D291BC] bg-pink-50 shadow-md"
-                      : "border-pink-100 hover:border-pink-200 hover:bg-pink-50/30"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="age"
-                    value={option.value}
-                    checked={formData.age === option.value}
-                    onChange={(e) => {
-                      setFormData({ ...formData, age: Number(e.target.value) });
-                      setTimeout(handleNext, 500);
-                    }}
-                    className="hidden"
-                  />
-                  <span className="text-lg text-[#D291BC]">{option.label}</span>
-                </motion.label>
-              ))}
+            <h3 className="text-2xl font-bold text-[#D291BC] mb-6">Berapa usia Anda saat menjalani kehamilan ini?</h3>
+            <div className="grid grid-cols-1 gap-4">
+              <motion.label
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex items-center p-6 rounded-xl border-2 cursor-pointer transition-all ${
+                  formData.age === 1
+                    ? "border-[#D291BC] bg-pink-50 shadow-md"
+                    : "border-pink-100 hover:border-pink-200 hover:bg-pink-50/30"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="age"
+                  value={1}
+                  checked={formData.age === 1}
+                  onChange={(e) => {
+                    setFormData({ ...formData, age: Number(e.target.value) });
+                    setTimeout(handleNext, 500);
+                  }}
+                  className="hidden"
+                />
+                <span className="text-lg text-[#D291BC]">Di bawah 20 tahun (remaja)</span>
+              </motion.label>
+
+              <motion.label
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex items-center p-6 rounded-xl border-2 cursor-pointer transition-all ${
+                  formData.age === 2
+                    ? "border-[#D291BC] bg-pink-50 shadow-md"
+                    : "border-pink-100 hover:border-pink-200 hover:bg-pink-50/30"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="age"
+                  value={2}
+                  checked={formData.age === 2}
+                  onChange={(e) => {
+                    setFormData({ ...formData, age: Number(e.target.value) });
+                    setTimeout(handleNext, 500);
+                  }}
+                  className="hidden"
+                />
+                <span className="text-lg text-[#D291BC]">20–24 tahun</span>
+              </motion.label>
+
+              <motion.label
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex items-center p-6 rounded-xl border-2 cursor-pointer transition-all ${
+                  formData.age === 3
+                    ? "border-[#D291BC] bg-pink-50 shadow-md"
+                    : "border-pink-100 hover:border-pink-200 hover:bg-pink-50/30"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="age"
+                  value={3}
+                  checked={formData.age === 3}
+                  onChange={(e) => {
+                    setFormData({ ...formData, age: Number(e.target.value) });
+                    setTimeout(handleNext, 500);
+                  }}
+                  className="hidden"
+                />
+                <span className="text-lg text-[#D291BC]">25–29 tahun</span>
+              </motion.label>
+
+              <motion.label
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex items-center p-6 rounded-xl border-2 cursor-pointer transition-all ${
+                  formData.age === 4
+                    ? "border-[#D291BC] bg-pink-50 shadow-md"
+                    : "border-pink-100 hover:border-pink-200 hover:bg-pink-50/30"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="age"
+                  value={4}
+                  checked={formData.age === 4}
+                  onChange={(e) => {
+                    setFormData({ ...formData, age: Number(e.target.value) });
+                    setTimeout(handleNext, 500);
+                  }}
+                  className="hidden"
+                />
+                <span className="text-lg text-[#D291BC]">30–34 tahun</span>
+              </motion.label>
+
+              <motion.label
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex items-center p-6 rounded-xl border-2 cursor-pointer transition-all ${
+                  formData.age === 5
+                    ? "border-[#D291BC] bg-pink-50 shadow-md"
+                    : "border-pink-100 hover:border-pink-200 hover:bg-pink-50/30"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="age"
+                  value={5}
+                  checked={formData.age === 5}
+                  onChange={(e) => {
+                    setFormData({ ...formData, age: Number(e.target.value) });
+                    setTimeout(handleNext, 500);
+                  }}
+                  className="hidden"
+                />
+                <span className="text-lg text-[#D291BC]">35–39 tahun</span>
+              </motion.label>
+
+              <motion.label
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex items-center p-6 rounded-xl border-2 cursor-pointer transition-all ${
+                  formData.age === 6
+                    ? "border-[#D291BC] bg-pink-50 shadow-md"
+                    : "border-pink-100 hover:border-pink-200 hover:bg-pink-50/30"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="age"
+                  value={6}
+                  checked={formData.age === 6}
+                  onChange={(e) => {
+                    setFormData({ ...formData, age: Number(e.target.value) });
+                    setTimeout(handleNext, 500);
+                  }}
+                  className="hidden"
+                />
+                <span className="text-lg text-[#D291BC]">40 tahun ke atas</span>
+              </motion.label>
             </div>
           </motion.div>
         );
@@ -678,9 +865,24 @@ export default function DiagnosaPage() {
             className="bg-white rounded-xl p-4 sm:p-6 w-full max-w-7xl mx-auto mb-8 shadow-2xl border border-pink-100"
           >
             <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-[#D291BC]">Hasil Analisis</h2>
+              <div className="flex items-center gap-4">
+                <PregnantWomanIcon />
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-[#D291BC]">Hasil Analisis</h2>
+                  <p className="text-sm text-gray-500">
+                    {new Date().toLocaleDateString('id-ID', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </p>
+                </div>
+              </div>
               <div className="flex gap-2">
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={resetForm}
                   className="text-[#D291BC] hover:text-pink-500 p-1.5"
                   title="Mulai Ulang"
@@ -688,142 +890,147 @@ export default function DiagnosaPage() {
                   <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => setShowModal(false)}
                   className="text-[#D291BC] hover:text-pink-500 p-1.5"
                 >
                   <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                </button>
+                </motion.button>
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
-              {/* Left Column - User Info & Risk Level */}
-              <div className="md:col-span-4 space-y-4 sm:space-y-5">
-                {/* User Info */}
-                <div className="grid grid-cols-2 md:grid-cols-1 gap-3 sm:gap-4">
-                  <div className="bg-pink-50 p-3 sm:p-4 rounded-xl flex items-center space-x-3">
-                    <UserIcon />
-                    <div>
-                      <p className="text-xs sm:text-sm text-[#D291BC]">Nama</p>
-                      <p className="text-sm sm:text-base font-medium text-[#D291BC]">{userData.nama}</p>
-                    </div>
-                  </div>
-                  <div className="bg-pink-50 p-3 sm:p-4 rounded-xl flex items-center space-x-3">
-                    <AgeIcon />
-                    <div>
-                      <p className="text-xs sm:text-sm text-[#D291BC]">Usia</p>
-                      <p className="text-sm sm:text-base font-medium text-[#D291BC]">{userData.usia} tahun</p>
-                    </div>
-                  </div>
-                  <div className="bg-pink-50 p-3 sm:p-4 rounded-xl flex items-center space-x-3 col-span-2 md:col-span-1">
-                    <BloodIcon />
-                    <div>
-                      <p className="text-xs sm:text-sm text-[#D291BC]">Golongan Darah</p>
-                      <p className="text-sm sm:text-base font-medium text-[#D291BC]">{userData.golonganDarah}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Risk Level */}
-                <div className="bg-gradient-to-br from-white to-pink-50 rounded-xl p-4 sm:p-5 border border-pink-100">
-                  <p className="text-sm sm:text-base font-medium text-[#D291BC] mb-2">Tingkat Risiko:</p>
-                  <div className={`${riskLevelExplanations[result.risk_level].bgColor} p-3 sm:p-4 rounded-xl border ${
-                    result.risk_level === "high risk" ? "border-red-200" :
-                    result.risk_level === "mid risk" ? "border-yellow-200" :
-                    "border-green-200"
+            <div className="grid grid-cols-1 gap-4 sm:gap-6">
+              {/* Risk Level - Full Width */}
+              <div className={`${riskLevelExplanations[result.risk_level].bgColor} p-6 sm:p-8 rounded-xl border ${
+                result.risk_level === "high risk" ? "border-red-200" :
+                result.risk_level === "mid risk" ? "border-yellow-200" :
+                "border-green-200"
+              }`}>
+                <div className="flex flex-col items-center text-center">
+                  <p className={`text-3xl sm:text-4xl font-bold mb-4 ${riskLevelExplanations[result.risk_level].color}`}>
+                    {riskLevelExplanations[result.risk_level].title}
+                  </p>
+                  <p className={`text-base sm:text-lg ${
+                    result.risk_level === "high risk" ? "text-red-700" :
+                    result.risk_level === "mid risk" ? "text-yellow-700" :
+                    "text-green-700"
                   }`}>
-                    <p className={`text-xl sm:text-2xl font-bold mb-2 ${riskLevelExplanations[result.risk_level].color}`}>
-                      {riskLevelExplanations[result.risk_level].title}
-                    </p>
-                    <p className={`text-xs sm:text-sm ${
-                      result.risk_level === "high risk" ? "text-red-700" :
-                      result.risk_level === "mid risk" ? "text-yellow-700" :
-                      "text-green-700"
-                    }`}>
-                      {riskLevelExplanations[result.risk_level].description}
-                    </p>
-                  </div>
+                    {riskLevelExplanations[result.risk_level].description}
+                  </p>
                 </div>
               </div>
 
-              {/* Middle Column - Vital Signs */}
-              <div className="md:col-span-5 space-y-4 sm:space-y-5">
+              {/* Grid for remaining content */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
+                {/* User Info */}
+                <div className="md:col-span-4 space-y-4 sm:space-y-5">
+                  {/* User Info Cards */}
+                  <div className="grid grid-cols-2 md:grid-cols-1 gap-3 sm:gap-4">
+                    <div className="bg-pink-50 p-3 sm:p-4 rounded-xl flex items-center space-x-3">
+                      <UserIcon />
+                      <div>
+                        <p className="text-xs sm:text-sm text-[#D291BC]">Nama</p>
+                        <p className="text-sm sm:text-base font-medium text-[#D291BC]">{userData.nama}</p>
+                      </div>
+                    </div>
+                    <div className="bg-pink-50 p-3 sm:p-4 rounded-xl flex items-center space-x-3">
+                      <AgeIcon />
+                      <div>
+                        <p className="text-xs sm:text-sm text-[#D291BC]">Usia</p>
+                        <p className="text-sm sm:text-base font-medium text-[#D291BC]">{userData.usia} tahun</p>
+                      </div>
+                    </div>
+                    <div className="bg-pink-50 p-3 sm:p-4 rounded-xl flex items-center space-x-3 col-span-2 md:col-span-1">
+                      <BloodIcon />
+                      <div>
+                        <p className="text-xs sm:text-sm text-[#D291BC]">Golongan Darah</p>
+                        <p className="text-sm sm:text-base font-medium text-[#D291BC]">{userData.golonganDarah}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Vital Signs */}
-                <div className="bg-gradient-to-br from-white to-pink-50 rounded-xl p-4 sm:p-5 border border-pink-100">
-                  <p className="text-sm sm:text-base font-medium text-[#D291BC] mb-3 sm:mb-4">Parameter Vital:</p>
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                    <div className="bg-pink-50/50 p-3 sm:p-4 rounded-xl border border-pink-100">
-                      <p className="text-xs sm:text-sm text-[#D291BC]">Tekanan Darah</p>
-                      <p className="text-sm sm:text-lg font-medium text-[#D291BC]">{formData.bp.systolic}/{formData.bp.diastolic} mmHg</p>
+                <div className="md:col-span-5">
+                  {/* Vital Signs Content */}
+                  <div className="bg-gradient-to-br from-white to-pink-50 rounded-xl p-4 sm:p-5 border border-pink-100">
+                    <p className="text-sm sm:text-base font-medium text-[#D291BC] mb-3 sm:mb-4">Parameter Vital:</p>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      <div className="bg-pink-50/50 p-3 sm:p-4 rounded-xl border border-pink-100">
+                        <p className="text-xs sm:text-sm text-[#D291BC]">Tekanan Darah</p>
+                        <p className="text-sm sm:text-lg font-medium text-[#D291BC]">{formData.bp.systolic}/{formData.bp.diastolic} mmHg</p>
+                      </div>
+                      <div className="bg-pink-50/50 p-3 sm:p-4 rounded-xl border border-pink-100">
+                        <p className="text-xs sm:text-sm text-[#D291BC]">Gula Darah</p>
+                        <p className="text-sm sm:text-lg font-medium text-[#D291BC]">{formData.bs} mmol/L</p>
+                      </div>
+                      <div className="bg-pink-50/50 p-3 sm:p-4 rounded-xl border border-pink-100">
+                        <p className="text-xs sm:text-sm text-[#D291BC]">Suhu Tubuh</p>
+                        <p className="text-sm sm:text-lg font-medium text-[#D291BC]">{formData.bodyTemp}°C</p>
+                      </div>
+                      <div className="bg-pink-50/50 p-3 sm:p-4 rounded-xl border border-pink-100">
+                        <p className="text-xs sm:text-sm text-[#D291BC]">Detak Jantung</p>
+                        <p className="text-sm sm:text-lg font-medium text-[#D291BC]">{formData.heartRate} bpm</p>
+                      </div>
                     </div>
-                    <div className="bg-pink-50/50 p-3 sm:p-4 rounded-xl border border-pink-100">
-                      <p className="text-xs sm:text-sm text-[#D291BC]">Gula Darah</p>
-                      <p className="text-sm sm:text-lg font-medium text-[#D291BC]">{formData.bs} mmol/L</p>
-                    </div>
-                    <div className="bg-pink-50/50 p-3 sm:p-4 rounded-xl border border-pink-100">
-                      <p className="text-xs sm:text-sm text-[#D291BC]">Suhu Tubuh</p>
-                      <p className="text-sm sm:text-lg font-medium text-[#D291BC]">{formData.bodyTemp}°C</p>
-                    </div>
-                    <div className="bg-pink-50/50 p-3 sm:p-4 rounded-xl border border-pink-100">
-                      <p className="text-xs sm:text-sm text-[#D291BC]">Detak Jantung</p>
-                      <p className="text-sm sm:text-lg font-medium text-[#D291BC]">{formData.heartRate} bpm</p>
-                    </div>
+                  </div>
+                </div>
+
+                {/* Recommendations */}
+                <div className="md:col-span-3">
+                  {/* Recommendations Content */}
+                  <div className="bg-gradient-to-br from-white to-pink-50 rounded-xl p-4 sm:p-5 border border-pink-100">
+                    <p className="text-sm sm:text-base font-medium text-[#D291BC] mb-3">Rekomendasi:</p>
+                    <ul className="space-y-2 sm:space-y-3">
+                      {getRiskRecommendations(result.risk_level).map((rec: string, index: number) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-[#D291BC] mr-2">•</span>
+                          <span className="text-xs sm:text-sm text-[#D291BC]">{rec}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </div>
 
-              {/* Right Column - Recommendations & Warning */}
-              <div className="md:col-span-3 space-y-4 sm:space-y-5">
-                {/* Recommendations */}
-                <div className="bg-gradient-to-br from-white to-pink-50 rounded-xl p-4 sm:p-5 border border-pink-100">
-                  <p className="text-sm sm:text-base font-medium text-[#D291BC] mb-3">Rekomendasi:</p>
-                  <ul className="space-y-2 sm:space-y-3">
-                    {getRiskRecommendations(result.risk_level).map((rec: string, index: number) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-[#D291BC] mr-2">•</span>
-                        <span className="text-xs sm:text-sm text-[#D291BC]">{rec}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Warning */}
-                <div className="bg-yellow-50 rounded-xl p-4 sm:p-5 border border-yellow-200">
-                  <div className="flex items-start space-x-3">
-                    <WarningIcon />
-                    <div>
-                      <p className="text-sm sm:text-base font-medium text-yellow-800 mb-2">Catatan Penting:</p>
-                      <p className="text-xs sm:text-sm text-yellow-700">
-                        Model AI ini memiliki tingkat akurasi 84.21% dan hanya berfungsi sebagai alat bantu prediksi awal.
-                        Hasil prediksi tidak menggantikan diagnosis dari tenaga medis profesional.
-                        Selalu konsultasikan kondisi Anda dengan dokter atau bidan yang menangani kehamilan Anda.
-                      </p>
-                    </div>
+              {/* Warning Section */}
+              <div className="bg-yellow-50 rounded-xl p-4 sm:p-5 border border-yellow-200">
+                <div className="flex items-start space-x-3">
+                  <WarningIcon />
+                  <div>
+                    <p className="text-sm sm:text-base font-medium text-yellow-800 mb-2">Catatan Penting:</p>
+                    <p className="text-xs sm:text-sm text-yellow-700">
+                      Model AI ini memiliki tingkat akurasi 84.21% dan hanya berfungsi sebagai alat bantu prediksi awal.
+                      Hasil prediksi tidak menggantikan diagnosis dari tenaga medis profesional.
+                      Selalu konsultasikan kondisi Anda dengan dokter atau bidan yang menangani kehamilan Anda.
+                    </p>
                   </div>
                 </div>
+              </div>
 
-                <div className="flex gap-3 sm:gap-4">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={generatePDF}
-                    className="flex-1 bg-gradient-to-r from-[#D291BC] to-pink-400 text-white rounded-xl py-2.5 sm:py-3 text-sm sm:text-base font-medium shadow-lg hover:shadow-xl transition-all"
-                  >
-                    Unduh PDF
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowModal(false)}
-                    className="flex-1 border-2 border-[#D291BC] text-[#D291BC] rounded-xl py-2.5 sm:py-3 text-sm sm:text-base font-medium hover:bg-pink-50 transition-all"
-                  >
-                    Tutup
-                  </motion.button>
-                </div>
+              {/* Action Buttons */}
+              <div className="flex gap-3 sm:gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={generatePDF}
+                  className="flex-1 bg-gradient-to-r from-[#D291BC] to-pink-400 text-white rounded-xl py-2.5 sm:py-3 text-sm sm:text-base font-medium shadow-lg hover:shadow-xl transition-all"
+                >
+                  Unduh PDF
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 border-2 border-[#D291BC] text-[#D291BC] rounded-xl py-2.5 sm:py-3 text-sm sm:text-base font-medium hover:bg-pink-50 transition-all"
+                >
+                  Tutup
+                </motion.button>
               </div>
             </div>
           </motion.div>
