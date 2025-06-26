@@ -1,101 +1,142 @@
-export const featuredArticles = [
-  {
-    id: 1,
-    title: "Essential Nutrients During Pregnancy: A Complete Guide",
-    image: "/images/journal/nutrients.jpg",
-    category: "Nutrition",
-    readTime: "7 min read",
-    author: "Dr. Sarah Johnson",
-    authorImage: "/main/gallery/photo-profile.jpg",
-    description: "Learn about the crucial vitamins and minerals needed during pregnancy for optimal fetal development."
-  },
-  {
-    id: 2,
-    title: "Safe Exercise During Pregnancy: What You Need to Know",
-    image: "/images/journal/exercise.jpg",
-    category: "Fitness",
-    readTime: "5 min read",
-    author: "Emma Thompson",
-    authorImage: "/main/gallery/photo-profile.jpg",
-    description: "Discover safe and effective exercises that can help you stay healthy throughout your pregnancy."
-  },
-  {
-    id: 3,
-    title: "Managing Morning Sickness: Tips and Natural Remedies",
-    image: "/images/journal/morning-sickness.jpg",
-    category: "Wellness",
-    readTime: "4 min read",
-    author: "Dr. Lisa Chen",
-    authorImage: "/main/gallery/photo-profile.jpg",
-    description: "Practical strategies to cope with morning sickness during early pregnancy."
-  }
-];
+interface Article {
+  id: string;
+  title: string;
+  description?: string;
+  image: string;
+  category: string;
+  author: string;
+  authorImage: string;
+  readTime: string;
+}
 
-export const trendingArticles = [
+export const featuredArticles: Article[] = [
   {
-    id: 1,
-    title: "First Trimester Must-Knows: A Week-by-Week Guide",
-    image: "/images/journal/first-trimester.jpg",
-    category: "Pregnancy",
-    readTime: "6 min read"
-  },
-  {
-    id: 2,
-    title: "Preparing Your Home for Baby: Essential Checklist",
-    image: "/images/journal/baby-prep.jpg",
-    category: "Planning",
+    id: "1",
+    title: "Understanding Maternal Health Risks",
+    description: "A comprehensive guide to identifying and managing maternal health risks during pregnancy.",
+    image: "/main/gallery.jpg",
+    category: "Health",
+    author: "Dr. Sarah Johnson",
+    authorImage: "/images/authors/sarah.jpg",
     readTime: "5 min read"
   },
   {
-    id: 3,
-    title: "Healthy Pregnancy Snacks for Every Trimester",
-    image: "/images/journal/snacks.jpg",
+    id: "2",
+    title: "Essential Nutrients During Pregnancy: A Complete Guide",
+    description: "Learn about the vital nutrients needed during pregnancy for both mother and baby.",
+    image: "/images/journal/nutrients.jpg",
     category: "Nutrition",
+    author: "Dr. Emily Brown",
+    authorImage: "/images/authors/emily.jpg",
+    readTime: "6 min read"
+  },
+  {
+    id: "3",
+    title: "Safe Exercise During Pregnancy: What You Need to Know",
+    description: "Guidelines for staying active safely during your pregnancy journey.",
+    image: "/images/journal/exercise.jpg",
+    category: "Fitness",
+    author: "Dr. Michael Chen",
+    authorImage: "/images/authors/michael.jpg",
+    readTime: "7 min read"
+  },
+];
+
+export const trendingArticles: Article[] = [
+  {
+    id: "1",
+    title: "Latest Developments in Maternal Care",
+    description: "Exploring recent advancements in maternal healthcare technology and practices.",
+    image: "/images/article2.jpg",
+    category: "Technology",
+    author: "Dr. Michael Chen",
+    authorImage: "/images/authors/michael.jpg",
     readTime: "4 min read"
   },
   {
-    id: 4,
-    title: "Understanding Prenatal Tests and Screenings",
-    image: "/images/journal/prenatal-tests.jpg",
-    category: "Health",
+    id: "2",
+    title: "First Trimester Must-Knows: A Week-by-Week Guide",
+    description: "Everything you need to know about your first trimester of pregnancy.",
+    image: "/images/journal/first-trimester.jpg",
+    category: "Education",
+    author: "Dr. Emily Brown",
+    authorImage: "/images/authors/emily.jpg",
     readTime: "8 min read"
-  }
-];
-
-export const breakingNews = [
-  {
-    id: 1,
-    title: "New Study Reveals Benefits of Meditation During Pregnancy",
-    image: "/images/journal/meditation.jpg",
-    description: "Recent research shows that practicing mindfulness and meditation for just 10 minutes daily can significantly reduce pregnancy-related stress and anxiety, leading to better outcomes for both mother and baby.",
-    author: "Dr. Emily White",
-    authorImage: "/main/gallery/photo-profile.jpg"
   },
   {
-    id: 2,
-    title: "Revolutionary Prenatal Care App Launches Worldwide",
-    image: "/images/journal/prenatal-app.jpg",
-    description: "A new mobile application that connects expectant mothers with healthcare providers and provides personalized pregnancy tracking has been released globally.",
-    author: "Tech Health Team",
-    authorImage: "/main/gallery/photo-profile.jpg"
+    id: "3",
+    title: "Preparing Your Home for Baby: Essential Checklist",
+    description: "A comprehensive guide to preparing your home for your new arrival.",
+    image: "/images/journal/baby-prep.jpg",
+    category: "Lifestyle",
+    author: "Maria Rodriguez",
+    authorImage: "/images/authors/maria.jpg",
+    readTime: "6 min read"
+  },
+  {
+    id: "4",
+    title: "Healthy Pregnancy Snacks for Every Trimester",
+    description: "Nutritious and delicious snack ideas for your pregnancy journey.",
+    image: "/images/journal/snacks.jpg",
+    category: "Nutrition",
+    author: "Dr. Sarah Johnson",
+    authorImage: "/images/authors/sarah.jpg",
+    readTime: "4 min read"
   }
 ];
 
-export const blogArticles = [
+export const breakingNews: Article[] = [
   {
-    id: 1,
+    id: "1",
+    title: "New Study Reveals Key Factors in Maternal Health",
+    description: "Recent research highlights important factors affecting maternal health outcomes.",
+    image: "/images/article3.jpg",
+    category: "Research",
+    author: "Dr. Emily Brown",
+    authorImage: "/images/authors/emily.jpg",
+    readTime: "3 min read"
+  },
+  {
+    id: "2",
+    title: "New Study Reveals Benefits of Meditation During Pregnancy",
+    description: "Research shows significant benefits of meditation for expectant mothers.",
+    image: "/images/journal/meditation.jpg",
+    category: "Research",
+    author: "Dr. Michael Chen",
+    authorImage: "/images/authors/michael.jpg",
+    readTime: "5 min read"
+  },
+  {
+    id: "3",
+    title: "Revolutionary Prenatal Care App Launches Worldwide",
+    description: "New mobile app aims to transform prenatal care accessibility.",
+    image: "/images/journal/prenatal-app.jpg",
+    category: "Technology",
+    author: "Dr. Sarah Johnson",
+    authorImage: "/images/authors/sarah.jpg",
+    readTime: "4 min read"
+  }
+];
+
+export const blogArticles: Article[] = [
+  {
+    id: "1",
+    title: "A Mother's Journey Through Healthcare",
+    description: "Personal experiences and insights from maternal healthcare journey.",
+    image: "/images/article4.jpg",
+    category: "Blog",
+    author: "Maria Rodriguez",
+    authorImage: "/images/authors/maria.jpg",
+    readTime: "6 min read"
+  },
+  {
+    id: "2",
     title: "The Complete Guide to Pregnancy Sleep Positions",
+    description: "Learn about the best sleeping positions for each trimester and tips for getting better rest during pregnancy.",
     image: "/images/journal/sleep.jpg",
     category: "Wellness",
-    readTime: "7 min read",
-    description: "Learn about the best sleeping positions for each trimester and tips for getting better rest during pregnancy."
-  },
-  {
-    id: 2,
-    title: "Understanding Your Pregnancy Cravings: Science Explained",
-    image: "/images/journal/cravings.jpg",
-    category: "Health",
-    readTime: "6 min read",
-    description: "Discover why pregnancy cravings happen and how to handle them in a healthy way."
+    author: "Dr. Sarah Johnson",
+    authorImage: "/images/authors/sarah.jpg",
+    readTime: "7 min read"
   }
 ]; 
