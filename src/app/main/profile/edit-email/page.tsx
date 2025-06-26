@@ -9,52 +9,59 @@ export default function EditEmailPage() {
   const [email, setEmail] = useState("sarah@email.com");
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-[#FFE3EC]/40 px-4 py-8">
-      <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md relative overflow-hidden">
-        <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#D291BC]/10 rounded-full z-0" />
-        <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-[#D291BC]/10 rounded-full z-0" />
+    <div className="h-screen bg-gradient-to-b from-white to-[#FFE3EC]/40 p-4 md:p-6 flex items-center justify-center">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-md relative"
+      >
+        {/* Background decorations */}
+        <div className="absolute -top-8 -left-8 w-24 h-24 bg-[#D291BC]/10 rounded-full blur-xl -z-10" />
+        <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-[#FFE3EC]/30 rounded-full blur-xl -z-10" />
 
-        <div className="relative z-10 flex flex-col items-center mb-8">
-          <div className="bg-[#FFE3EC] p-4 rounded-full mb-3 shadow">
-            <IconMail className="w-8 h-8 text-[#D291BC]" />
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-[#FFE3EC] p-2 rounded-lg">
+              <IconMail className="w-5 h-5 text-[#D291BC]" />
+            </div>
+            <h1 className="text-xl font-semibold text-[#D291BC]">Change Email</h1>
           </div>
-          <h1 className="text-2xl font-bold text-[#D291BC] text-center">
-            Edit Email
-          </h1>
-          <p className="text-gray-500 text-sm mt-2 text-center max-w-xs">
-            Masukkan email baru yang aktif dan valid.
-          </p>
+
+          <form className="space-y-4">
+            <div>
+              <label className="block text-gray-700 text-sm font-medium mb-1">
+                New Email Address
+              </label>
+              <input
+                type="email"
+                className="w-full px-3 py-2 rounded-xl border border-[#D291BC]/20 focus:border-[#D291BC] focus:ring-2 focus:ring-[#D291BC]/20 transition-all text-gray-700 bg-white/50"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="Enter your new email"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Link 
+                href="/main/profile"
+                className="flex-1 py-2.5 px-4 rounded-xl border border-[#D291BC] text-[#D291BC] font-medium text-center hover:bg-[#D291BC]/5 transition-colors"
+              >
+                Cancel
+              </Link>
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                type="submit"
+                className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#D291BC] to-pink-400 text-white font-medium shadow-md"
+              >
+                Save
+              </motion.button>
+            </div>
+          </form>
         </div>
-        <form className="space-y-6 relative z-10">
-          <div>
-            <label className="block text-[#D291BC] font-medium mb-1">
-              Email Baru
-            </label>
-            <input
-              type="email"
-              className="w-full px-4 py-3 rounded-xl border border-[#D291BC]/30 focus:border-[#D291BC] focus:ring-2 focus:ring-pink-100 transition-all text-[#D291BC] bg-white text-base"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="Masukkan email baru"
-            />
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="submit"
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-[#D291BC] to-pink-400 hover:from-pink-400 hover:to-[#D291BC] text-white font-semibold text-lg shadow transition-colors mt-6"
-          >
-            Simpan Email
-          </motion.button>
-          <Link
-            href="/main/profile"
-            className="block text-center text-[#D291BC] hover:text-pink-400 mt-4 text-sm font-medium transition-colors"
-          >
-            Kembali ke Profil
-          </Link>
-        </form>
-      </div>
+      </motion.div>
     </div>
   );
 }
