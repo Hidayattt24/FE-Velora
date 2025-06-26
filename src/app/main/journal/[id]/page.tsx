@@ -1,12 +1,13 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { ProfileHeader } from "@/components/ui/profile-header";
 import { featuredArticles, trendingArticles, breakingNews, blogArticles } from "@/lib/data/journal-articles";
 
 export default function ArticlePage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
 
   // Combine all articles to find the one with matching id
@@ -27,6 +28,16 @@ export default function ArticlePage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <ProfileHeader />
+
+      <button
+        onClick={() => router.back()}
+        className="mt-8 mb-8 flex items-center gap-2 text-[#D291BC] hover:text-pink-300 transition-colors py-3 px-6 text-lg rounded-xl font-semibold "
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Kembali
+      </button>
 
       <article className="max-w-4xl mx-auto mt-8">
         <div className="aspect-[16/9] relative rounded-2xl overflow-hidden mb-8">
@@ -93,4 +104,4 @@ export default function ArticlePage() {
       </article>
     </div>
   );
-} 
+}
