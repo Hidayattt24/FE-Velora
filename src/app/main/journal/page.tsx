@@ -13,6 +13,8 @@ import Link from "next/link";
 import { CategoryFilter } from "@/components/ui/category-filter";
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
 
 export default function JournalPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -68,61 +70,70 @@ export default function JournalPage() {
         />
       </div>
 
-      {/* Featured Articles */}
+      {/* Featured Articles - Swiper */}
       <section className="mb-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Swiper
+          spaceBetween={24}
+          slidesPerView={1}
+          breakpoints={{
+            640: { slidesPerView: 1 },
+            768: { slidesPerView: 2 },
+            1024: { slidesPerView: 3 },
+          }}
+        >
           {filteredFeatured.length > 0 ? (
             filteredFeatured.map((article) => (
-              <Link
-                href={`/main/journal/${article.id}`}
-                key={article.id}
-                className="block group"
-              >
-                <div className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all h-[400px]">
-                  <div className="h-full relative">
-                    <Image
-                      src={article.image}
-                      alt={article.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                    <span className="text-white/80 text-sm">
-                      {article.category}
-                    </span>
-                    <h3 className="text-white text-xl font-semibold mt-2 line-clamp-2">
-                      {article.title}
-                    </h3>
-                    <div className="flex items-center mt-4 space-x-3">
+              <SwiperSlide key={article.id}>
+                <Link
+                  href={`/main/journal/${article.id}`}
+                  className="block group"
+                >
+                  <div className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all h-[400px]">
+                    <div className="h-full relative">
                       <Image
-                        src={article.authorImage}
-                        alt={article.author}
-                        width={32}
-                        height={32}
-                        className="rounded-full"
+                        src={article.image}
+                        alt={article.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                      <span className="text-white/90 text-sm">
-                        {article.author}
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                      <span className="text-white/80 text-sm">
+                        {article.category}
                       </span>
-                      <span className="text-white/70 text-sm">·</span>
-                      <span className="text-white/70 text-sm">
-                        {article.readTime}
-                      </span>
+                      <h3 className="text-white text-xl font-semibold mt-2 line-clamp-2">
+                        {article.title}
+                      </h3>
+                      <div className="flex items-center mt-4 space-x-3">
+                        <Image
+                          src={article.authorImage}
+                          alt={article.author}
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                        <span className="text-white/90 text-sm">
+                          {article.author}
+                        </span>
+                        <span className="text-white/70 text-sm">·</span>
+                        <span className="text-white/70 text-sm">
+                          {article.readTime}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </SwiperSlide>
             ))
           ) : (
             <div className="col-span-full flex justify-center">
               <EmptyStateIllustration />
             </div>
           )}
-        </div>
+        </Swiper>
       </section>
 
-      {/* Trending & Editor's Picks */}
+      {/* Trending & Editor's Picks - Swiper */}
       <section className="mb-12">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2">
@@ -131,50 +142,105 @@ export default function JournalPage() {
               Trending & Editor's Picks
             </h2>
           </div>
-          {/* <button className="text-[#D291BC] hover:text-pink-600 transition-colors">
-            View all
-          </button> */}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Swiper
+          spaceBetween={24}
+          slidesPerView={1}
+          breakpoints={{
+            640: { slidesPerView: 2 },
+            1024: { slidesPerView: 4 },
+          }}
+        >
           {filteredTrending.length > 0 ? (
             filteredTrending.map((article) => (
-              <Link
-                href={`/main/journal/${article.id}`}
-                key={article.id}
-                className="block group"
-              >
-                <div className="rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all h-[320px]">
-                  <div className="h-[180px] relative">
-                    <Image
-                      src={article.image}
-                      alt={article.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+              <SwiperSlide key={article.id}>
+                <Link
+                  href={`/main/journal/${article.id}`}
+                  className="block group"
+                >
+                  <div className="rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all h-[320px]">
+                    <div className="h-[180px] relative">
+                      <Image
+                        src={article.image}
+                        alt={article.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="p-4 h-[140px] flex flex-col">
+                      <span className="text-[#D291BC]/80 text-sm">
+                        {article.category}
+                      </span>
+                      <h3 className="text-gray-800 font-medium mt-2 group-hover:text-[#D291BC] transition-colors line-clamp-2">
+                        {article.title}
+                      </h3>
+                      <span className="text-gray-500 text-sm mt-auto">
+                        {article.readTime}
+                      </span>
+                    </div>
                   </div>
-                  <div className="p-4 h-[140px] flex flex-col">
-                    <span className="text-[#D291BC]/80 text-sm">
-                      {article.category}
-                    </span>
-                    <h3 className="text-gray-800 font-medium mt-2 group-hover:text-[#D291BC] transition-colors line-clamp-2">
-                      {article.title}
-                    </h3>
-                    <span className="text-gray-500 text-sm mt-auto">
-                      {article.readTime}
-                    </span>
-                  </div>
-                </div>
-              </Link>
+                </Link>
+              </SwiperSlide>
             ))
           ) : (
             <div className="col-span-full flex justify-center">
               <EmptyStateIllustration />
             </div>
           )}
-        </div>
+        </Swiper>
       </section>
 
-      {/* Breaking News */}
+      {/* Blog Articles - Swiper */}
+      <section className="mb-12">
+        <div className="flex items-center space-x-2 mb-6">
+          <IconBookmark className="w-6 h-6 text-[#D291BC]" />
+          <h2 className="text-xl font-semibold text-[#D291BC]">Blog & Tips</h2>
+        </div>
+        <Swiper
+          spaceBetween={24}
+          slidesPerView={1}
+          breakpoints={{
+            640: { slidesPerView: 2 },
+            1024: { slidesPerView: 3 },
+          }}
+        >
+          {filterArticles(blogArticles).length > 0 ? (
+            filterArticles(blogArticles).map((blog) => (
+              <SwiperSlide key={blog.id}>
+                <Link href={`/main/journal/${blog.id}`} className="block group">
+                  <div className="rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all h-[320px]">
+                    <div className="h-[180px] relative">
+                      <Image
+                        src={blog.image}
+                        alt={blog.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="p-4 h-[140px] flex flex-col">
+                      <span className="text-[#D291BC]/80 text-sm">
+                        {blog.category}
+                      </span>
+                      <h3 className="text-gray-800 font-medium mt-2 group-hover:text-[#D291BC] transition-colors line-clamp-2">
+                        {blog.title}
+                      </h3>
+                      <span className="text-gray-500 text-sm mt-auto">
+                        {blog.readTime}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </SwiperSlide>
+            ))
+          ) : (
+            <div className="col-span-full flex justify-center">
+              <EmptyStateIllustration />
+            </div>
+          )}
+        </Swiper>
+      </section>
+
+      {/* Breaking News (tetap grid biasa) */}
       <section className="mb-12">
         <div className="flex items-center space-x-2 mb-6">
           <IconFlame className="w-6 h-6 text-[#D291BC]" />
@@ -252,7 +318,7 @@ function EmptyStateIllustration() {
           cx="60"
           cy="60"
           r="35"
-          fill="#FFD54F"
+          fill="#D291BC"
           stroke="#D291BC"
           strokeWidth="3"
           initial={{ scale: 0 }}
@@ -266,7 +332,7 @@ function EmptyStateIllustration() {
           cy="50"
           rx="4"
           ry="6"
-          fill="#2D2D2D"
+          fill="#ffff"
           initial={{ scaleY: 0 }}
           animate={{ scaleY: 1 }}
           transition={{ delay: 0.3, duration: 0.3 }}
@@ -278,7 +344,7 @@ function EmptyStateIllustration() {
           cy="50"
           rx="4"
           ry="6"
-          fill="#2D2D2D"
+          fill="#ffff"
           initial={{ scaleY: 0 }}
           animate={{ scaleY: 1 }}
           transition={{ delay: 0.4, duration: 0.3 }}
@@ -366,7 +432,7 @@ function EmptyStateIllustration() {
         {/* Mulut sedih */}
         <motion.path
           d="M 50 75 Q 60 85 70 75"
-          stroke="#2D2D2D"
+          stroke="#ffff"
           strokeWidth="3"
           fill="none"
           strokeLinecap="round"
@@ -378,7 +444,7 @@ function EmptyStateIllustration() {
         {/* Alis kiri (sedih) */}
         <motion.path
           d="M 42 40 Q 48 35 54 40"
-          stroke="#2D2D2D"
+          stroke="#ffff"
           strokeWidth="2.5"
           fill="none"
           strokeLinecap="round"
@@ -390,7 +456,7 @@ function EmptyStateIllustration() {
         {/* Alis kanan (sedih) */}
         <motion.path
           d="M 66 40 Q 72 35 78 40"
-          stroke="#2D2D2D"
+          stroke="#ffff"
           strokeWidth="2.5"
           fill="none"
           strokeLinecap="round"
@@ -405,7 +471,7 @@ function EmptyStateIllustration() {
           y="47"
           width="8"
           height="6"
-          fill="#FFD54F"
+          fill="#D291BC"
           initial={{ scaleY: 0 }}
           animate={{ scaleY: [0, 0, 0, 1, 0] }}
           transition={{
@@ -420,7 +486,7 @@ function EmptyStateIllustration() {
           y="47"
           width="8"
           height="6"
-          fill="#FFD54F"
+          fill="#D291BC"
           initial={{ scaleY: 0 }}
           animate={{ scaleY: [0, 0, 0, 1, 0] }}
           transition={{
@@ -437,7 +503,7 @@ function EmptyStateIllustration() {
           cy="45"
           rx="6"
           ry="4"
-          fill="#FFF59D"
+          fill="#D291BC"
           fillOpacity="0.6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
