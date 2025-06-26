@@ -15,48 +15,46 @@ export default function ProfilePage() {
   });
 
   return (
-    <div className="h-screen bg-gradient-to-b from-white to-[#FFE3EC]/40 p-4 md:p-6 flex items-center justify-center">
+    <div className="h-screen bg-gradient-to-br from-white via-[#FFE3EC]/30 to-[#D291BC]/10 p-4 md:p-6 flex items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         className="w-full max-w-md mx-auto relative"
       >
-        {/* Background decorations */}
-        <div className="absolute -top-8 -left-8 w-24 h-24 bg-[#D291BC]/10 rounded-full blur-xl -z-10" />
-        <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-[#FFE3EC]/30 rounded-full blur-xl -z-10" />
-
         {/* Profile Card */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-4">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Image
-                src={user.photo}
-                alt="Profile"
-                width={80}
-                height={80}
-                className="rounded-xl object-cover shadow-md"
-              />
+        <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg p-6 mb-6 border border-[#D291BC]/10">
+          <div className="flex items-center gap-6">
+            <div className="relative group">
+              <div className="rounded-2xl overflow-hidden transition-transform duration-300 group-hover:scale-105">
+                <Image
+                  src={user.photo}
+                  alt="Profile"
+                  width={90}
+                  height={90}
+                  className="object-cover"
+                />
+              </div>
               <Link href="/main/profile/edit-photo">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="absolute -bottom-1 -right-1 bg-[#D291BC] text-white p-1.5 rounded-lg shadow-lg"
+                  className="absolute -bottom-2 -right-2 bg-[#D291BC] text-white p-2 rounded-xl shadow-lg"
                 >
                   <IconCamera className="w-4 h-4" />
                 </motion.button>
               </Link>
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-[#D291BC]">{user.fullName}</h2>
-              <p className="text-sm text-gray-500">@{user.username}</p>
-              <p className="text-sm text-gray-500">{user.email}</p>
+              <h2 className="text-xl font-semibold text-[#D291BC] mb-1">{user.fullName}</h2>
+              <p className="text-[#D291BC]/70 text-sm mb-1">@{user.username}</p>
+              <p className="text-[#D291BC]/70 text-sm">{user.email}</p>
             </div>
           </div>
         </div>
 
         {/* Menu Items */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <ProfileMenuItem
             href="/main/profile/edit-profile"
             icon={<IconEdit className="w-4 h-4" />}
@@ -76,9 +74,9 @@ export default function ProfilePage() {
 
         {/* Logout Button */}
         <motion.button
-          whileHover={{ scale: 1.01 }}
+          whileHover={{ scale: 1.01, y: -2 }}
           whileTap={{ scale: 0.99 }}
-          className="w-full mt-4 py-3 bg-gradient-to-r from-[#D291BC] to-pink-400 text-white font-medium rounded-xl flex items-center justify-center gap-2 shadow-md"
+          className="w-full mt-6 py-3.5 bg-gradient-to-r from-[#D291BC] to-pink-400 text-white font-medium rounded-2xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
         >
           <IconLogout className="w-4 h-4" />
           Logout
@@ -100,14 +98,16 @@ function ProfileMenuItem({
   return (
     <Link href={href}>
       <motion.div
-        whileHover={{ x: 4 }}
-        className="flex items-center justify-between p-3 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm hover:shadow-md transition-all"
+        whileHover={{ scale: 1.02, x: 4 }}
+        className="flex items-center justify-between p-4 bg-white/70 backdrop-blur-sm rounded-2xl shadow-sm hover:shadow-md transition-all border border-[#D291BC]/10"
       >
-        <div className="flex items-center gap-3">
-          <div className="bg-[#FFE3EC] p-2 rounded-lg">{icon}</div>
-          <span className="font-medium text-gray-700">{label}</span>
+        <div className="flex items-center gap-4">
+          <div className="bg-[#FFE3EC] p-2.5 rounded-xl">
+            <div className="text-[#D291BC]">{icon}</div>
+          </div>
+          <span className="font-medium text-[#D291BC]/90">{label}</span>
         </div>
-        <IconChevronRight className="w-4 h-4 text-gray-400" />
+        <IconChevronRight className="w-4 h-4 text-[#D291BC]/60" />
       </motion.div>
     </Link>
   );
