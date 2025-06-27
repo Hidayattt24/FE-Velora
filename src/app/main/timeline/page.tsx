@@ -2,1178 +2,783 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ProfileHeader } from "@/components/ui/profile-header";
 import {
-  IconBabyCarriage,
-  IconHeart,
+  IconAlertTriangle,
+  IconX,
   IconCheck,
-  IconUser,
-  IconClipboard,
-  IconChevronLeft,
-  IconChevronRight,
   IconCalendarEvent,
-  IconMoodHappy,
-  IconActivity,
-  IconShield,
-  IconPill,
+  IconNotes,
   IconStethoscope,
+  IconHeartbeat,
+  IconAlertCircle,
 } from "@tabler/icons-react";
+import { ProfileHeader } from "@/components/ui/profile-header";
+import { StatefulButton } from "@/components/aceternity/stateful-button";
 
-// Pregnancy week data structure
-interface WeekData {
-  week: number;
-  trimester: number;
-  fetal: {
-    size: string;
-    development: string[];
-    organs: string[];
-    weight: string;
-    length: string;
-  };
-  mother: {
-    physical: string[];
-    emotional: string[];
-    symptoms: string[];
-    tips: string[];
-  };
-  checklist: {
-    medical: string[];
-    lifestyle: string[];
-    nutrition: string[];
-    completed?: boolean[];
-  };
+// Health services tracking interface
+interface HealthService {
+  id: string;
+  title: string;
+  description: string;
+  recommendedWeeks: number[];
 }
 
-// Sample data for pregnancy weeks (expanded based on KIA guidelines)
-const pregnancyData: WeekData[] = [
+// Symptoms tracking interface
+interface Symptom {
+  id: string;
+  title: string;
+  description: string;
+  isDanger: boolean;
+}
+
+// Journal entry interface
+interface JournalEntry {
+  week: number;
+  date: string;
+  healthServices: {
+    [id: string]: boolean;
+  };
+  symptoms: {
+    [id: string]: boolean;
+  };
+  healthServicesNotes: string;
+  symptomsNotes: string;
+}
+
+// Health services data based on Buku KIA 2024
+const healthServicesData: HealthService[] = [
   {
-    week: 4,
-    trimester: 1,
-    fetal: {
-      size: "Sebesar biji poppy",
-      development: [
-        "Embrio mulai terbentuk",
-        "Sistem saraf pusat mulai berkembang",
-        "Jantung primitif mulai berdetak",
-      ],
-      organs: ["Sistem saraf", "Jantung primitif", "Tabung neural"],
-      weight: "< 1 gram",
-      length: "1-2 mm",
-    },
-    mother: {
-      physical: [
-        "Terlambat menstruasi",
-        "Payudara terasa lebih sensitif",
-        "Mudah lelah",
-      ],
-      emotional: [
-        "Perasaan campur aduk",
-        "Antisipasi dan kegembiraan",
-        "Sedikit cemas",
-      ],
-      symptoms: [
-        "Morning sickness ringan",
-        "Perubahan nafsu makan",
-        "Sering buang air kecil",
-      ],
-      tips: [
-        "Mulai konsumsi asam folat",
-        "Hindari alkohol dan rokok",
-        "Istirahat yang cukup",
-      ],
-    },
-    checklist: {
-      medical: [
-        "Tes kehamilan",
-        "Konsultasi dengan dokter/bidan",
-        "Mulai konsumsi asam folat 400mcg",
-      ],
-      lifestyle: [
-        "Berhenti merokok dan alkohol",
-        "Hindari obat-obatan tanpa resep",
-        "Mulai olahraga ringan",
-      ],
-      nutrition: [
-        "Konsumsi makanan bergizi seimbang",
-        "Minum air putih 8-10 gelas/hari",
-        "Hindari makanan mentah",
-      ],
-    },
+    id: "bloodPressure",
+    title: "Pengukuran Tekanan Darah",
+    description: "Pemeriksaan tekanan darah untuk memantau risiko preeklampsia",
+    recommendedWeeks: [8, 12, 16, 20, 24, 28, 30, 32, 34, 36, 37, 38, 39, 40],
   },
   {
-    week: 8,
-    trimester: 1,
-    fetal: {
-      size: "Sebesar buah raspberry",
-      development: [
-        "Semua organ utama mulai terbentuk",
-        "Lengan dan kaki mulai berkembang",
-        "Wajah mulai terbentuk",
-      ],
-      organs: ["Jantung", "Otak", "Ginjal", "Hati", "Paru-paru"],
-      weight: "1 gram",
-      length: "14-20 mm",
-    },
-    mother: {
-      physical: [
-        "Morning sickness lebih intens",
-        "Payudara membesar",
-        "Kelelahan meningkat",
-      ],
-      emotional: [
-        "Perubahan mood yang cepat",
-        "Kekhawatiran tentang perkembangan bayi",
-        "Mulai merasa 'hamil'",
-      ],
-      symptoms: ["Mual dan muntah", "Sensitivitas terhadap bau", "Konstipasi"],
-      tips: [
-        "Makan sedikit tapi sering",
-        "Hindari pemicu mual",
-        "Istirahat siang jika memungkinkan",
-      ],
-    },
-    checklist: {
-      medical: [
-        "Pemeriksaan kehamilan pertama",
-        "Tes darah lengkap",
-        "Vaksinasi Tetanus Toxoid (TT) 1",
-      ],
-      lifestyle: [
-        "Cukup tidur 8-9 jam",
-        "Hindari stress berlebihan",
-        "Mulai kelas prenatal",
-      ],
-      nutrition: [
-        "Konsumsi TTD (Tablet Tambah Darah)",
-        "Protein hewani dan nabati",
-        "Kalsium dan vitamin D",
-      ],
-    },
+    id: "weightCheck",
+    title: "Penimbangan Berat Badan",
+    description: "Pemantauan pertambahan berat badan selama kehamilan",
+    recommendedWeeks: [8, 12, 16, 20, 24, 28, 30, 32, 34, 36, 37, 38, 39, 40],
   },
   {
-    week: 12,
-    trimester: 1,
-    fetal: {
-      size: "Sebesar jeruk nipis",
-      development: [
-        "Semua organ utama sudah terbentuk",
-        "Dapat menggerakkan tangan dan kaki",
-        "Refleks mengisap sudah ada",
-      ],
-      organs: ["Sistem pencernaan", "Ginjal", "Otot", "Tulang"],
-      weight: "14 gram",
-      length: "5.4 cm",
-    },
-    mother: {
-      physical: [
-        "Morning sickness mulai berkurang",
-        "Energi mulai kembali",
-        "Perut mulai membesar sedikit",
-      ],
-      emotional: [
-        "Merasa lebih stabil",
-        "Mulai bonding dengan bayi",
-        "Optimisme meningkat",
-      ],
-      symptoms: ["Nafsu makan membaik", "Perubahan kulit", "Gusi berdarah"],
-      tips: [
-        "Mulai berbicara dengan bayi",
-        "Dokumentasikan kehamilan",
-        "Sharing dengan pasangan",
-      ],
-    },
-    checklist: {
-      medical: [
-        "USG pertama",
-        "Skrining genetik (jika diperlukan)",
-        "Pemeriksaan tekanan darah",
-      ],
-      lifestyle: [
-        "Mulai yoga prenatal",
-        "Beli bra yang lebih besar",
-        "Rencanakan pengumuman kehamilan",
-      ],
-      nutrition: [
-        "Tingkatkan konsumsi kalsium",
-        "Omega-3 untuk perkembangan otak",
-        "Serat untuk mencegah konstipasi",
-      ],
-    },
+    id: "fundusHeight",
+    title: "Pengukuran Tinggi Fundus Uteri",
+    description: "Pemeriksaan tinggi rahim untuk memantau pertumbuhan janin",
+    recommendedWeeks: [12, 16, 20, 24, 28, 30, 32, 34, 36, 37, 38, 39, 40],
   },
   {
-    week: 16,
-    trimester: 2,
-    fetal: {
-      size: "Sebesar alpukat",
-      development: [
-        "Sistem saraf berkembang pesat",
-        "Dapat mendengar suara",
-        "Rambut dan kuku mulai tumbuh",
-      ],
-      organs: ["Sistem pendengaran", "Sistem koordinasi", "Kelenjar keringat"],
-      weight: "100 gram",
-      length: "11.6 cm",
-    },
-    mother: {
-      physical: [
-        "Perut mulai terlihat",
-        "Mungkin merasakan gerakan pertama",
-        "Postur tubuh mulai berubah",
-      ],
-      emotional: [
-        "Periode honeymoon kehamilan",
-        "Merasa lebih berenergi",
-        "Excited tentang perkembangan",
-      ],
-      symptoms: [
-        "Nafsu makan meningkat",
-        "Gatal-gatal ringan",
-        "Hidung tersumbat",
-      ],
-      tips: [
-        "Mulai bicara dan bernyanyi untuk bayi",
-        "Pijat perut dengan lembut",
-        "Persiapkan kamar bayi",
-      ],
-    },
-    checklist: {
-      medical: [
-        "Pemeriksaan rutin ke-2",
-        "Tes AFP (Alpha Fetoprotein)",
-        "Vaksinasi TT 2",
-      ],
-      lifestyle: [
-        "Mulai senam hamil teratur",
-        "Beli pakaian hamil",
-        "Persiapkan rencana persalinan",
-      ],
-      nutrition: [
-        "Protein 75-100g per hari",
-        "Zat besi untuk mencegah anemia",
-        "Vitamin C untuk penyerapan zat besi",
-      ],
-    },
+    id: "fetalHeartRate",
+    title: "Pemeriksaan Denyut Jantung Janin (DJJ)",
+    description:
+      "Pemantauan detak jantung janin untuk memastikan kesehatan janin",
+    recommendedWeeks: [12, 16, 20, 24, 28, 30, 32, 34, 36, 37, 38, 39, 40],
   },
   {
-    week: 20,
-    trimester: 2,
-    fetal: {
-      size: "Sebesar pisang",
-      development: [
-        "Jenis kelamin sudah dapat diketahui",
-        "Gerakan semakin aktif",
-        "Sidik jari mulai terbentuk",
-      ],
-      organs: ["Organ reproduksi", "Sistem pencernaan", "Sistem imun"],
-      weight: "300 gram",
-      length: "16.4 cm",
-    },
-    mother: {
-      physical: [
-        "Gerakan bayi terasa jelas",
-        "Perut membesar signifikan",
-        "Postur berdiri berubah",
-      ],
-      emotional: [
-        "Bonding dengan bayi menguat",
-        "Mulai merasa seperti 'ibu'",
-        "Anticipasi yang tinggi",
-      ],
-      symptoms: [
-        "Sakit punggung ringan",
-        "Bengkak ringan di kaki",
-        "Heartburn",
-      ],
-      tips: [
-        "Catat pola gerakan bayi",
-        "Mulai persiapan mental persalinan",
-        "Bonding time dengan pasangan",
-      ],
-    },
-    checklist: {
-      medical: [
-        "USG anomali (anatomi scan)",
-        "Pemeriksaan tekanan darah",
-        "Tes gula darah",
-      ],
-      lifestyle: [
-        "Tidur dengan posisi miring kiri",
-        "Mulai kelas persalinan",
-        "Siapkan daftar nama bayi",
-      ],
-      nutrition: [
-        "Kalsium 1000mg per hari",
-        "Hindari makanan pedas berlebihan",
-        "Konsumsi ikan tinggi omega-3",
-      ],
-    },
+    id: "fetalPosition",
+    title: "Pemeriksaan Presentasi Janin",
+    description: "Pemeriksaan posisi janin dalam kandungan",
+    recommendedWeeks: [28, 30, 32, 34, 36, 37, 38, 39, 40],
   },
   {
-    week: 24,
-    trimester: 2,
-    fetal: {
-      size: "Sebesar jagung",
-      development: [
-        "Paru-paru mulai memproduksi surfaktan",
-        "Pendengaran semakin sensitif",
-        "Pola tidur-bangun teratur",
-      ],
-      organs: ["Paru-paru", "Sistem pendengaran", "Otak"],
-      weight: "600 gram",
-      length: "21 cm",
-    },
-    mother: {
-      physical: [
-        "Gerakan bayi semakin kuat",
-        "Sesak napas ringan",
-        "Stretch marks mulai muncul",
-      ],
-      emotional: [
-        "Mulai khawatir tentang persalinan",
-        "Perasaan protektif menguat",
-        "Persiapan mental menjadi orangtua",
-      ],
-      symptoms: ["Kontraksi Braxton Hicks", "Kram kaki", "Perubahan kulit"],
-      tips: [
-        "Gunakan pelembab untuk stretch marks",
-        "Latihan pernapasan",
-        "Mulai persiapan perlengkapan bayi",
-      ],
-    },
-    checklist: {
-      medical: [
-        "Tes toleransi glukosa",
-        "Pemeriksaan anemia",
-        "Monitor tekanan darah",
-      ],
-      lifestyle: [
-        "Hindari posisi tidur telentang",
-        "Gunakan bantalan penyangga",
-        "Siapkan tas persalinan",
-      ],
-      nutrition: [
-        "Tingkatkan konsumsi serat",
-        "Batasi garam berlebihan",
-        "Konsumsi makanan kaya folat",
-      ],
-    },
+    id: "bloodTest",
+    title: "Pemeriksaan Laboratorium (Hb)",
+    description: "Tes darah untuk memeriksa kadar hemoglobin",
+    recommendedWeeks: [8, 28],
   },
   {
-    week: 28,
-    trimester: 3,
-    fetal: {
-      size: "Sebesar terong",
-      development: [
-        "Mata dapat membuka dan menutup",
-        "Dapat mengisap jempol",
-        "Otak berkembang pesat",
-      ],
-      organs: ["Mata", "Sistem saraf", "Jaringan lemak"],
-      weight: "1 kg",
-      length: "25 cm",
-    },
-    mother: {
-      physical: [
-        "Perut semakin besar",
-        "Sesak napas lebih sering",
-        "Sering buang air kecil",
-      ],
-      emotional: [
-        "Mulai cemas tentang persalinan",
-        "Nesting instinct mulai muncul",
-        "Anticipasi bertemu bayi",
-      ],
-      symptoms: ["Insomnia", "Sakit punggung", "Bengkak di kaki"],
-      tips: [
-        "Siapkan rencana persalinan",
-        "Mulai kelas laktasi",
-        "Persiapan rumah untuk bayi",
-      ],
-    },
-    checklist: {
-      medical: [
-        "Pemeriksaan rutin setiap 2 minggu",
-        "Tes Rhesus (jika Rh negatif)",
-        "Konsultasi rencana persalinan",
-      ],
-      lifestyle: [
-        "Mulai cuti hamil (jika memungkinkan)",
-        "Siapkan kamar bayi",
-        "Kelas persiapan persalinan",
-      ],
-      nutrition: [
-        "Protein tinggi untuk pertumbuhan",
-        "Hindari makanan tinggi merkuri",
-        "Konsumsi DHA untuk otak bayi",
-      ],
-    },
+    id: "urineTest",
+    title: "Pemeriksaan Urine",
+    description: "Tes urine untuk mendeteksi protein dan glukosa",
+    recommendedWeeks: [8, 20, 28, 36],
   },
   {
-    week: 32,
-    trimester: 3,
-    fetal: {
-      size: "Sebesar kelapa",
-      development: [
-        "Tulang mengeras kecuali tengkorak",
-        "Gerakan lebih terkoordinasi",
-        "Sistem imun berkembang",
-      ],
-      organs: ["Tulang", "Sistem kekebalan", "Paru-paru"],
-      weight: "1.7 kg",
-      length: "28 cm",
-    },
-    mother: {
-      physical: [
-        "Napas semakin sesak",
-        "Gerakan bayi terasa tidak nyaman",
-        "Sulit tidur",
-      ],
-      emotional: [
-        "Mulai tidak sabar menunggu",
-        "Khawatir tentang proses persalinan",
-        "Excited sekaligus nervous",
-      ],
-      symptoms: ["Kontraksi palsu lebih sering", "Heartburn parah", "Edema"],
-      tips: [
-        "Latihan pernapasan intensif",
-        "Persiapan fisik dan mental",
-        "Siapkan semua keperluan bayi",
-      ],
-    },
-    checklist: {
-      medical: [
-        "USG untuk posisi bayi",
-        "Tes GBS (Group B Strep)",
-        "Finalisasi rencana persalinan",
-      ],
-      lifestyle: [
-        "Siapkan semua dokumen persalinan",
-        "Pack tas rumah sakit",
-        "Atur transportasi ke rumah sakit",
-      ],
-      nutrition: [
-        "Konsumsi kurma untuk persalinan",
-        "Tetap terhidrasi dengan baik",
-        "Vitamin K untuk pembekuan darah",
-      ],
-    },
+    id: "ttImmunization",
+    title: "Imunisasi TT",
+    description: "Vaksinasi Tetanus Toxoid sesuai status imunisasi",
+    recommendedWeeks: [16, 20],
   },
   {
-    week: 36,
-    trimester: 3,
-    fetal: {
-      size: "Sebesar melon honeydew",
-      development: [
-        "Paru-paru hampir matang",
-        "Lemak tubuh terakumulasi",
-        "Sistem pencernaan siap",
-      ],
-      organs: ["Paru-paru", "Hati", "Ginjal"],
-      weight: "2.6 kg",
-      length: "32 cm",
-    },
-    mother: {
-      physical: [
-        "Kepala bayi mulai turun",
-        "Napas sedikit lega",
-        "Tekanan di panggul meningkat",
-      ],
-      emotional: [
-        "Anticipation tinggi",
-        "Mulai merasa ready",
-        "Sedikit khawatir timing persalinan",
-      ],
-      symptoms: [
-        "Sering buang air kecil",
-        "Kontraksi lebih reguler",
-        "Nyeri panggul",
-      ],
-      tips: [
-        "Monitor tanda-tanda persalinan",
-        "Siapkan semua kontak darurat",
-        "Latihan relaksasi",
-      ],
-    },
-    checklist: {
-      medical: [
-        "Pemeriksaan mingguan dimulai",
-        "Monitor denyut jantung bayi",
-        "Diskusi induksi jika perlu",
-      ],
-      lifestyle: [
-        "Siapkan rencana pengasuhan",
-        "Atur bantuan pasca persalinan",
-        "Final check semua perlengkapan",
-      ],
-      nutrition: [
-        "Makanan berenergi tinggi",
-        "Tetap konsumsi suplemen",
-        "Persiapan nutrisi menyusui",
-      ],
-    },
+    id: "ironTablets",
+    title: "Pemberian Tablet Tambah Darah",
+    description: "Suplemen zat besi untuk mencegah anemia",
+    recommendedWeeks: [8, 12, 16, 20, 24, 28, 30, 32, 34, 36, 37, 38, 39, 40],
   },
   {
-    week: 40,
-    trimester: 3,
-    fetal: {
-      size: "Sebesar semangka",
-      development: [
-        "Siap dilahirkan",
-        "Semua organ berfungsi penuh",
-        "Vernix caseosa hilang",
-      ],
-      organs: ["Semua organ matang", "Sistem imun aktif", "Pencernaan ready"],
-      weight: "3.4 kg",
-      length: "35 cm",
-    },
-    mother: {
-      physical: [
-        "Kontraksi semakin reguler",
-        "Mungkin pecah ketuban",
-        "Tanda-tanda persalinan muncul",
-      ],
-      emotional: [
-        "Excited bertemu bayi",
-        "Nervous tentang proses persalinan",
-        "Ready menjadi ibu",
-      ],
-      symptoms: ["Kontraksi teratur", "Bloody show", "Energi burst"],
-      tips: [
-        "Tetap tenang dan rileks",
-        "Monitor kontraksi",
-        "Siap kapan saja ke rumah sakit",
-      ],
-    },
-    checklist: {
-      medical: [
-        "Siap persalinan kapan saja",
-        "Tahu kapan harus ke rumah sakit",
-        "Kontak bidan/dokter siaga",
-      ],
-      lifestyle: [
-        "Semua persiapan selesai",
-        "Support system ready",
-        "Mental dan fisik prepared",
-      ],
-      nutrition: [
-        "Makan ringan dan mudah dicerna",
-        "Tetap terhidrasi",
-        "Energi untuk persalinan",
-      ],
-    },
+    id: "counseling",
+    title: "Konseling/Nasihat",
+    description: "Konsultasi tentang kehamilan, persalinan, dan menyusui",
+    recommendedWeeks: [8, 12, 16, 20, 24, 28, 30, 32, 34, 36, 37, 38, 39, 40],
   },
 ];
 
-const weekRanges = [
+// Symptoms data including danger signs based on KIA guidelines
+const symptomsData: Symptom[] = [
+  // Danger signs (based on KIA book)
   {
-    label: "Trimester 1",
-    range: [1, 12],
-    color: "from-green-400 to-green-500",
+    id: "bleeding",
+    title: "Perdarahan",
+    description: "Perdarahan pervaginam dalam jumlah sedikit hingga banyak",
+    isDanger: true,
   },
-  { label: "Trimester 2", range: [13, 27], color: "from-blue-400 to-blue-500" },
   {
-    label: "Trimester 3",
-    range: [28, 40],
-    color: "from-purple-400 to-purple-500",
+    id: "severeHeadache",
+    title: "Sakit Kepala Hebat",
+    description: "Sakit kepala yang tidak biasa dan sangat mengganggu",
+    isDanger: true,
+  },
+  {
+    id: "blurredVision",
+    title: "Gangguan Penglihatan",
+    description: "Penglihatan kabur atau melihat titik-titik berkedip",
+    isDanger: true,
+  },
+  {
+    id: "swelling",
+    title: "Bengkak Wajah & Tangan",
+    description: "Pembengkakan pada wajah, tangan, atau seluruh tubuh",
+    isDanger: true,
+  },
+  {
+    id: "fever",
+    title: "Demam Tinggi",
+    description: "Suhu tubuh >38°C",
+    isDanger: true,
+  },
+  {
+    id: "reducedMovement",
+    title: "Gerakan Janin Berkurang",
+    description: "Gerakan janin berkurang atau tidak ada",
+    isDanger: true,
+  },
+  {
+    id: "waterBreaking",
+    title: "Ketuban Pecah",
+    description: "Air ketuban keluar dari jalan lahir",
+    isDanger: true,
+  },
+  {
+    id: "abdominalPain",
+    title: "Nyeri Perut Hebat",
+    description: "Nyeri perut yang hebat dan tidak kunjung hilang",
+    isDanger: true,
+  },
+  {
+    id: "easyTiring",
+    title: "Mudah Lelah",
+    description: "Merasa lelah yang berlebihan",
+    isDanger: false,
+  },
+  {
+    id: "nausea",
+    title: "Mual & Muntah",
+    description: "Morning sickness atau mual-muntah ringan",
+    isDanger: false,
+  },
+  {
+    id: "fatigue",
+    title: "Kelelahan",
+    description: "Mudah lelah dan mengantuk",
+    isDanger: false,
+  },
+  {
+    id: "heartburn",
+    title: "Heartburn",
+    description: "Rasa panas/nyeri di dada akibat asam lambung",
+    isDanger: false,
+  },
+  {
+    id: "constipation",
+    title: "Sembelit",
+    description: "Kesulitan buang air besar",
+    isDanger: false,
+  },
+  {
+    id: "backPain",
+    title: "Nyeri Punggung",
+    description: "Nyeri di punggung bagian bawah",
+    isDanger: false,
   },
 ];
+
+// Function to get week range for each trimester
+const getWeeksInTrimester = (trimester: number): number[] => {
+  switch (trimester) {
+    case 1:
+      return Array.from({ length: 12 }, (_, i) => i + 1); // Weeks 1-12
+    case 2:
+      return Array.from({ length: 15 }, (_, i) => i + 13); // Weeks 13-27
+    case 3:
+      return Array.from({ length: 15 }, (_, i) => i + 28); // Weeks 28-42
+    default:
+      return [];
+  }
+};
 
 export default function TimelinePage() {
-  const [currentWeek, setCurrentWeek] = useState(20); // Current pregnancy week
-  const [selectedWeek, setSelectedWeek] = useState(20);
-  const [activeTab, setActiveTab] = useState<"fetal" | "mother" | "checklist">(
-    "fetal"
-  );
-  const [checkedItems, setCheckedItems] = useState<{
-    [key: string]: boolean[];
+  // State for selected trimester (1, 2, or 3)
+  const [selectedTrimester, setSelectedTrimester] = useState<number>(1);
+
+  // State for selected week in the pregnancy
+  const [selectedWeek, setSelectedWeek] = useState<number>(1);
+
+  // State for journal entries (week -> entry)
+  const [journalEntries, setJournalEntries] = useState<{
+    [week: number]: JournalEntry;
   }>({});
 
-  const currentData =
-    pregnancyData.find((data) => data.week === selectedWeek) ||
-    pregnancyData[4];
-  const currentTrimester = Math.ceil(selectedWeek / 13.33);
+  // State for health services notes
+  const [healthServicesNotes, setHealthServicesNotes] = useState<string>("");
 
-  const toggleChecklistItem = (category: string, index: number) => {
-    const key = `${selectedWeek}-${category}`;
-    setCheckedItems((prev) => ({
+  // State for symptoms notes
+  const [symptomsNotes, setSymptomsNotes] = useState<string>("");
+
+  // State for warning modal
+  const [showWarning, setShowWarning] = useState<boolean>(false);
+
+  // State for current warning symptom
+  const [currentWarning, setCurrentWarning] = useState<Symptom | null>(null);
+
+  // State for card expansion
+  const [expandedHealthServices, setExpandedHealthServices] =
+    useState<boolean>(true);
+  const [expandedSymptoms, setExpandedSymptoms] = useState<boolean>(true);
+
+  // Initialize or load journal entry for the selected week
+  useEffect(() => {
+    // Load existing entry if it exists
+    const existingEntry = journalEntries[selectedWeek];
+    if (existingEntry) {
+      setHealthServicesNotes(existingEntry.healthServicesNotes || "");
+      setSymptomsNotes(existingEntry.symptomsNotes || "");
+    } else {
+      // Reset notes if no entry exists
+      setHealthServicesNotes("");
+      setSymptomsNotes("");
+    }
+  }, [selectedWeek, journalEntries]);
+
+  // When trimester changes, update the selected week to the first week of the trimester
+  useEffect(() => {
+    const weeksInTrimester = getWeeksInTrimester(selectedTrimester);
+    if (weeksInTrimester.length > 0) {
+      setSelectedWeek(weeksInTrimester[0]);
+    }
+  }, [selectedTrimester]);
+
+  // Get or create a journal entry for the current week
+  const getJournalEntry = (): JournalEntry => {
+    return (
+      journalEntries[selectedWeek] || {
+        week: selectedWeek,
+        date: new Date().toISOString().split("T")[0],
+        healthServices: {},
+        symptoms: {},
+        healthServicesNotes: "",
+        symptomsNotes: "",
+      }
+    );
+  };
+
+  // Toggle health service checkbox
+  const toggleHealthService = (serviceId: string) => {
+    const entry = getJournalEntry();
+    const newValue = !entry.healthServices[serviceId];
+
+    setJournalEntries((prev) => ({
       ...prev,
-      [key]: {
-        ...prev[key],
-        [index]: !prev[key]?.[index],
+      [selectedWeek]: {
+        ...entry,
+        healthServices: {
+          ...entry.healthServices,
+          [serviceId]: newValue,
+        },
       },
     }));
   };
 
-  const getCompletionPercentage = () => {
-    const categories = ["medical", "lifestyle", "nutrition"];
-    let totalItems = 0;
-    let completedItems = 0;
+  // Toggle symptom checkbox
+  const toggleSymptom = (symptomId: string) => {
+    const entry = getJournalEntry();
+    const newValue = !entry.symptoms[symptomId];
+    const symptom = symptomsData.find((s) => s.id === symptomId);
 
-    categories.forEach((category) => {
-      const key = `${selectedWeek}-${category}`;
-      const items = (currentData.checklist as any)[category];
-      totalItems += items.length;
-      completedItems += Object.values(checkedItems[key] || {}).filter(
-        Boolean
-      ).length;
-    });
+    setJournalEntries((prev) => ({
+      ...prev,
+      [selectedWeek]: {
+        ...entry,
+        symptoms: {
+          ...entry.symptoms,
+          [symptomId]: newValue,
+        },
+      },
+    }));
 
-    return Math.round((completedItems / totalItems) * 100) || 0;
+    // Show warning if danger sign is checked
+    if (symptom?.isDanger && newValue) {
+      setCurrentWarning(symptom);
+      setShowWarning(true);
+    }
+  };
+
+  // Save the journal entry
+  const saveJournalEntry = () => {
+    const entry = getJournalEntry();
+
+    setJournalEntries((prev) => ({
+      ...prev,
+      [selectedWeek]: {
+        ...entry,
+        healthServicesNotes: healthServicesNotes,
+        symptomsNotes: symptomsNotes,
+        date: new Date().toISOString().split("T")[0],
+      },
+    }));
+
+    // Show success message or toast here
+    alert("Catatan minggu " + selectedWeek + " berhasil disimpan!");
+  };
+
+  // Get danger symptoms
+  const getDangerSymptoms = () => {
+    return symptomsData.filter((symptom) => symptom.isDanger);
+  };
+
+  // Get normal symptoms
+  const getNormalSymptoms = () => {
+    return symptomsData.filter((symptom) => !symptom.isDanger);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-[#FFE3EC]/30 to-[#D291BC]/10">
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        <ProfileHeader />
+    <div className="min-h-screen bg-gradient-to-b from-[#FDF6F8] to-white pb-8">
+      {/* Profile Header */}
+      <ProfileHeader />
 
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-6 sm:mb-8"
-        >
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#D291BC] mb-2 px-2">
-            Linimasa Kehamilan Interaktif
+      {/* Main Content */}
+      <div className="container max-w-4xl mx-auto px-4">
+        {/* Centered Page Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#D291BC] leading-tight">
+            Jurnal & Pemantauan
+            <br />
+            <span className="text-lg md:text-xl font-medium text-gray-600">
+              Lembar Pemantauan Ibu Hamil
+            </span>
           </h1>
-          <p className="text-[#D291BC]/70 mb-4 text-sm sm:text-base px-2">
-            Informasi lengkap berdasarkan usia kehamilan Anda
-          </p>
+        </div>
 
-          {/* Current Week Indicator */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6 border border-[#D291BC]/10 inline-block mx-2">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <IconCalendarEvent className="w-5 h-5 sm:w-6 sm:h-6 text-[#D291BC]" />
-              <div>
-                <p className="text-xs sm:text-sm text-[#D291BC]/70">
-                  Usia Kehamilan Saat Ini
-                </p>
-                <p className="text-lg sm:text-xl font-semibold text-[#D291BC]">
-                  {currentWeek} Minggu
-                </p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Week Navigator */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white/70 backdrop-blur-sm rounded-2xl p-3 sm:p-6 mb-4 sm:mb-6 border border-[#D291BC]/10"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 gap-3 sm:gap-0">
-            <h3 className="text-base sm:text-lg font-semibold text-[#D291BC] text-center sm:text-left">
-              Pilih Minggu Kehamilan
-            </h3>
-            <div className="flex items-center justify-center gap-2">
-              <button
-                onClick={() => setSelectedWeek(Math.max(4, selectedWeek - 4))}
-                disabled={selectedWeek <= 4}
-                className="p-2 rounded-lg bg-[#FFE3EC] text-[#D291BC] hover:bg-[#D291BC] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <IconChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="text-[#D291BC] font-medium px-3 sm:px-4 text-sm sm:text-base">
-                Minggu {selectedWeek}
-              </span>
-              <button
-                onClick={() => setSelectedWeek(Math.min(40, selectedWeek + 4))}
-                disabled={selectedWeek >= 40}
-                className="p-2 rounded-lg bg-[#FFE3EC] text-[#D291BC] hover:bg-[#D291BC] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <IconChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Week Grid */}
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1.5 sm:gap-2">
-            {Array.from({ length: 37 }, (_, i) => i + 4).map((week) => {
-              const trimester = Math.ceil(week / 13.33);
-              const isSelected = week === selectedWeek;
-              const isCurrent = week === currentWeek;
-
-              return (
-                <motion.button
-                  key={week}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedWeek(week)}
-                  className={`
-                    relative p-1.5 sm:p-2 rounded-lg text-xs sm:text-sm font-medium transition-all
-                    ${
-                      isSelected
+        {/* Trimester Filter Navigation */}
+        <div className="mb-6">
+          <div className="flex justify-center">
+            <div className="bg-white rounded-2xl p-2 shadow-lg border border-pink-100">
+              <div className="flex gap-1">
+                {[1, 2, 3].map((trimester) => (
+                  <button
+                    key={trimester}
+                    onClick={() => setSelectedTrimester(trimester)}
+                    className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                      selectedTrimester === trimester
                         ? "bg-[#D291BC] text-white shadow-md"
-                        : "bg-[#FFE3EC]/50 text-[#D291BC] hover:bg-[#FFE3EC]"
-                    }
-                    ${
-                      isCurrent && !isSelected
-                        ? "ring-2 ring-[#D291BC] ring-opacity-50"
-                        : ""
-                    }
-                  `}
-                >
-                  {week}
-                  {isCurrent && (
-                    <div className="absolute -top-0.5 sm:-top-1 -right-0.5 sm:-right-1 w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
-                  )}
-                </motion.button>
-              );
-            })}
-          </div>
-
-          {/* Trimester Legend */}
-          <div className="flex flex-wrap justify-center gap-3 sm:gap-6 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-[#D291BC]/10">
-            {weekRanges.map((range, index) => (
-              <div key={index} className="flex items-center gap-1.5 sm:gap-2">
-                <div
-                  className={`w-3 h-3 sm:w-4 sm:h-4 rounded bg-gradient-to-r ${range.color}`}
-                ></div>
-                <span className="text-xs sm:text-sm text-[#D291BC]/70">
-                  {range.label}
-                </span>
+                        : "text-[#D291BC] hover:bg-pink-50"
+                    }`}
+                  >
+                    Trimester {trimester}
+                  </button>
+                ))}
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Week Selector Grid */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4 text-center">
+            Pilih Minggu Kehamilan (Trimester {selectedTrimester})
+          </h3>
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+            {getWeeksInTrimester(selectedTrimester).map((week) => (
+              <button
+                key={week}
+                onClick={() => setSelectedWeek(week)}
+                className={`p-3 rounded-xl font-medium text-sm transition-all duration-200 ${
+                  selectedWeek === week
+                    ? "bg-[#D291BC] text-white shadow-md scale-105"
+                    : "bg-white text-[#D291BC] border border-pink-200 hover:bg-pink-50"
+                }`}
+              >
+                {week}
+              </button>
             ))}
           </div>
-        </motion.div>
+        </div>
 
-        {/* Tab Navigation */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="flex justify-center mb-4 sm:mb-6 px-2"
-        >
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-1.5 sm:p-2 border border-[#D291BC]/10 w-full sm:w-auto">
-            <div className="flex gap-0.5 sm:gap-1">
-              {[
-                {
-                  id: "fetal",
-                  label: "Perkembangan Janin",
-                  shortLabel: "Janin",
-                  icon: IconBabyCarriage,
-                },
-                {
-                  id: "mother",
-                  label: "Info untuk Bunda",
-                  shortLabel: "Bunda",
-                  icon: IconUser,
-                },
-                {
-                  id: "checklist",
-                  label: "Checklist & Anjuran",
-                  shortLabel: "Checklist",
-                  icon: IconClipboard,
-                },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`
-                    flex-1 sm:flex-none flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-all
-                    ${
-                      activeTab === tab.id
-                        ? "bg-[#D291BC] text-white shadow-md"
-                        : "text-[#D291BC] hover:bg-[#FFE3EC]/50"
-                    }
-                  `}
-                >
-                  <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                  <span className="sm:hidden text-center leading-tight">
-                    {tab.shortLabel}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Content */}
-        <AnimatePresence mode="wait">
+        {/* Weekly Form */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Card 1: Pelayanan Kesehatan */}
           <motion.div
-            key={`${activeTab}-${selectedWeek}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
+            className="bg-white rounded-2xl shadow-lg border border-pink-100 overflow-hidden h-fit"
           >
-            {activeTab === "fetal" && (
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-3 sm:p-6 border border-[#D291BC]/10">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 sm:mb-6">
-                  <div className="bg-[#FFE3EC] p-2.5 sm:p-3 rounded-xl mx-auto sm:mx-0">
-                    <IconBabyCarriage className="w-5 h-5 sm:w-6 sm:h-6 text-[#D291BC]" />
-                  </div>
-                  <div className="text-center sm:text-left">
-                    <h2 className="text-lg sm:text-xl font-semibold text-[#D291BC]">
-                      Perkembangan Janin - Minggu {selectedWeek}
+            <div
+              className="bg-gradient-to-r from-[#D291BC] to-[#E2A8D6] p-4 cursor-pointer"
+              onClick={() => setExpandedHealthServices(!expandedHealthServices)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <IconStethoscope className="w-6 h-6 text-white" />
+                  <div>
+                    <h2 className="text-xl font-bold text-white">
+                      Pelayanan Kesehatan
                     </h2>
-                    <p className="text-sm sm:text-base text-[#D291BC]/70">
-                      Trimester {currentTrimester}
+                    <p className="text-pink-100 text-sm">
+                      Minggu ke-{selectedWeek} kehamilan
                     </p>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                  {/* Size & Physical Development */}
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4">
-                      <h3 className="font-semibold text-blue-800 mb-2 flex items-center gap-2 text-sm sm:text-base">
-                        <IconActivity className="w-4 h-4 sm:w-5 sm:h-5" />
-                        Ukuran & Berat
-                      </h3>
-                      <div className="space-y-1.5 sm:space-y-2 text-blue-700">
-                        <p className="text-sm sm:text-base">
-                          <strong>Ukuran:</strong> {currentData.fetal.size}
-                        </p>
-                        <p className="text-sm sm:text-base">
-                          <strong>Panjang:</strong> {currentData.fetal.length}
-                        </p>
-                        <p className="text-sm sm:text-base">
-                          <strong>Berat:</strong> {currentData.fetal.weight}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 sm:p-4">
-                      <h3 className="font-semibold text-green-800 mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
-                        <IconHeart className="w-4 h-4 sm:w-5 sm:h-5" />
-                        Organ yang Berkembang
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
-                        {currentData.fetal.organs.map((organ, index) => (
-                          <div
-                            key={index}
-                            className="bg-white/50 rounded-lg p-2 text-xs sm:text-sm text-green-700 font-medium text-center"
-                          >
-                            {organ}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Development Milestones */}
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 sm:p-4">
-                    <h3 className="font-semibold text-purple-800 mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
-                      <IconStethoscope className="w-4 h-4 sm:w-5 sm:h-5" />
-                      Perkembangan Utama
-                    </h3>
-                    <ul className="space-y-1.5 sm:space-y-2">
-                      {currentData.fetal.development.map((item, index) => (
-                        <li
-                          key={index}
-                          className="flex items-start gap-2 text-purple-700"
-                        >
-                          <IconCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                          <span className="text-xs sm:text-sm">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
+                <motion.div
+                  animate={{ rotate: expandedHealthServices ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <IconCalendarEvent className="w-5 h-5 text-white" />
+                </motion.div>
               </div>
-            )}
+            </div>
 
-            {activeTab === "mother" && (
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-3 sm:p-6 border border-[#D291BC]/10">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 sm:mb-6">
-                  <div className="bg-[#FFE3EC] p-2.5 sm:p-3 rounded-xl mx-auto sm:mx-0">
-                    <IconUser className="w-5 h-5 sm:w-6 sm:h-6 text-[#D291BC]" />
-                  </div>
-                  <div className="text-center sm:text-left">
-                    <h2 className="text-lg sm:text-xl font-semibold text-[#D291BC]">
-                      Info untuk Bunda - Minggu {selectedWeek}
-                    </h2>
-                    <p className="text-sm sm:text-base text-[#D291BC]/70">
-                      Yang akan Anda alami
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                  {/* Physical Changes */}
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-3 sm:p-4">
-                      <h3 className="font-semibold text-pink-800 mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
-                        <IconActivity className="w-4 h-4 sm:w-5 sm:h-5" />
-                        Perubahan Fisik
-                      </h3>
-                      <ul className="space-y-1.5 sm:space-y-2">
-                        {currentData.mother.physical.map((item, index) => (
-                          <li
-                            key={index}
-                            className="flex items-start gap-2 text-pink-700"
-                          >
-                            <IconCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-600 mt-0.5 flex-shrink-0" />
-                            <span className="text-xs sm:text-sm">{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 sm:p-4">
-                      <h3 className="font-semibold text-orange-800 mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
-                        <IconShield className="w-4 h-4 sm:w-5 sm:h-5" />
-                        Gejala Umum
-                      </h3>
-                      <ul className="space-y-1.5 sm:space-y-2">
-                        {currentData.mother.symptoms.map((item, index) => (
-                          <li
-                            key={index}
-                            className="flex items-start gap-2 text-orange-700"
-                          >
-                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full mt-1.5 sm:mt-2 flex-shrink-0"></div>
-                            <span className="text-xs sm:text-sm">{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Emotional & Tips */}
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4">
-                      <h3 className="font-semibold text-blue-800 mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
-                        <IconMoodHappy className="w-4 h-4 sm:w-5 sm:h-5" />
-                        Perubahan Emosional
-                      </h3>
-                      <ul className="space-y-1.5 sm:space-y-2">
-                        {currentData.mother.emotional.map((item, index) => (
-                          <li
-                            key={index}
-                            className="flex items-start gap-2 text-blue-700"
-                          >
-                            <IconHeart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                            <span className="text-xs sm:text-sm">{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 sm:p-4">
-                      <h3 className="font-semibold text-green-800 mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
-                        <IconShield className="w-4 h-4 sm:w-5 sm:h-5" />
-                        Tips & Saran
-                      </h3>
-                      <ul className="space-y-1.5 sm:space-y-2">
-                        {currentData.mother.tips.map((item, index) => (
-                          <li
-                            key={index}
-                            className="flex items-start gap-2 text-green-700"
-                          >
-                            <IconCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                            <span className="text-xs sm:text-sm">{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "checklist" && (
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-3 sm:p-6 border border-[#D291BC]/10">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <div className="bg-[#FFE3EC] p-2.5 sm:p-3 rounded-xl mx-auto sm:mx-0">
-                      <IconClipboard className="w-5 h-5 sm:w-6 sm:h-6 text-[#D291BC]" />
-                    </div>
-                    <div className="text-center sm:text-left">
-                      <h2 className="text-lg sm:text-xl font-semibold text-[#D291BC]">
-                        Checklist & Anjuran - Minggu {selectedWeek}
-                      </h2>
-                      <p className="text-sm sm:text-base text-[#D291BC]/70">
-                        Berdasarkan pedoman Buku KIA
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Progress Circle */}
-                  <div className="flex items-center justify-center sm:justify-end">
-                    <div className="relative w-12 h-12 sm:w-16 sm:h-16">
-                      <svg
-                        className="w-12 h-12 sm:w-16 sm:h-16 transform -rotate-90"
-                        viewBox="0 0 32 32"
-                      >
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="14"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          fill="none"
-                          className="text-[#FFE3EC]"
-                        />
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="14"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          fill="none"
-                          strokeDasharray={`${2 * Math.PI * 14}`}
-                          strokeDashoffset={`${
-                            2 *
-                            Math.PI *
-                            14 *
-                            (1 - getCompletionPercentage() / 100)
-                          }`}
-                          className="text-[#D291BC] transition-all duration-300"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-xs sm:text-sm font-semibold text-[#D291BC]">
-                          {getCompletionPercentage()}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
-                  {/* Medical Checklist */}
-                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 sm:p-4">
-                    <h3 className="font-semibold text-red-800 mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
-                      <IconStethoscope className="w-4 h-4 sm:w-5 sm:h-5" />
-                      Pemeriksaan Medis
-                    </h3>
-                    <div className="space-y-1.5 sm:space-y-2">
-                      {currentData.checklist.medical.map((item, index) => {
-                        const key = `${selectedWeek}-medical`;
-                        const isChecked = checkedItems[key]?.[index] || false;
+            <AnimatePresence>
+              {expandedHealthServices && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-6">
+                    <div className="grid gap-4">
+                      {healthServicesData.map((service) => {
+                        const isRecommended =
+                          service.recommendedWeeks.includes(selectedWeek);
+                        const isChecked =
+                          getJournalEntry().healthServices[service.id] || false;
 
                         return (
-                          <label
-                            key={index}
-                            className="flex items-start gap-2 sm:gap-3 cursor-pointer group"
+                          <motion.div
+                            key={service.id}
+                            className={`border rounded-xl p-4 transition-all duration-200 ${
+                              isRecommended
+                                ? "border-pink-200 bg-pink-50"
+                                : "border-gray-200 bg-gray-50"
+                            }`}
+                            whileHover={{ scale: 1.01 }}
                           >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() =>
-                                toggleChecklistItem("medical", index)
-                              }
-                              className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-600 border-red-300 rounded focus:ring-red-500 mt-0.5 flex-shrink-0"
-                            />
-                            <span
-                              className={`text-xs sm:text-sm transition-all ${
-                                isChecked
-                                  ? "text-red-600 line-through opacity-75"
-                                  : "text-red-700 group-hover:text-red-800"
-                              }`}
-                            >
-                              {item}
-                            </span>
-                          </label>
+                            <label className="flex items-start gap-3 cursor-pointer">
+                              <div className="relative mt-1">
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={() =>
+                                    toggleHealthService(service.id)
+                                  }
+                                  className="sr-only"
+                                />
+                                <div
+                                  className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                                    isChecked
+                                      ? "bg-[#D291BC] border-[#D291BC]"
+                                      : "border-pink-300 hover:border-[#D291BC]"
+                                  }`}
+                                >
+                                  {isChecked && (
+                                    <IconCheck className="w-3 h-3 text-white" />
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex-1">
+                                <h4
+                                  className={`font-medium ${
+                                    isRecommended
+                                      ? "text-pink-700"
+                                      : "text-gray-700"
+                                  }`}
+                                >
+                                  {service.title}
+                                  {isRecommended && (
+                                    <span className="ml-2 text-xs bg-pink-200 text-pink-700 px-2 py-1 rounded-full">
+                                      Direkomendasikan
+                                    </span>
+                                  )}
+                                </h4>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {service.description}
+                                </p>
+                              </div>
+                            </label>
+                          </motion.div>
                         );
                       })}
                     </div>
-                  </div>
 
-                  {/* Lifestyle Checklist */}
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4">
-                    <h3 className="font-semibold text-blue-800 mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
-                      <IconActivity className="w-4 h-4 sm:w-5 sm:h-5" />
-                      Gaya Hidup
-                    </h3>
-                    <div className="space-y-1.5 sm:space-y-2">
-                      {currentData.checklist.lifestyle.map((item, index) => {
-                        const key = `${selectedWeek}-lifestyle`;
-                        const isChecked = checkedItems[key]?.[index] || false;
-
-                        return (
-                          <label
-                            key={index}
-                            className="flex items-start gap-2 sm:gap-3 cursor-pointer group"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() =>
-                                toggleChecklistItem("lifestyle", index)
-                              }
-                              className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 border-blue-300 rounded focus:ring-blue-500 mt-0.5 flex-shrink-0"
-                            />
-                            <span
-                              className={`text-xs sm:text-sm transition-all ${
-                                isChecked
-                                  ? "text-blue-600 line-through opacity-75"
-                                  : "text-blue-700 group-hover:text-blue-800"
-                              }`}
-                            >
-                              {item}
-                            </span>
-                          </label>
-                        );
-                      })}
+                    {/* Notes for Health Services */}
+                    <div className="mt-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <IconNotes className="w-4 h-4 inline mr-2" />
+                        Catatan Pelayanan Kesehatan
+                      </label>
+                      <textarea
+                        value={healthServicesNotes}
+                        onChange={(e) => setHealthServicesNotes(e.target.value)}
+                        placeholder="Tambahkan catatan tentang pelayanan kesehatan yang diterima..."
+                        className="w-full p-4 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-[#D291BC] transition-colors resize-none"
+                        rows={3}
+                      />
                     </div>
                   </div>
-
-                  {/* Nutrition Checklist */}
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 sm:p-4">
-                    <h3 className="font-semibold text-green-800 mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
-                      <IconPill className="w-4 h-4 sm:w-5 sm:h-5" />
-                      Nutrisi & Suplemen
-                    </h3>
-                    <div className="space-y-1.5 sm:space-y-2">
-                      {currentData.checklist.nutrition.map((item, index) => {
-                        const key = `${selectedWeek}-nutrition`;
-                        const isChecked = checkedItems[key]?.[index] || false;
-
-                        return (
-                          <label
-                            key={index}
-                            className="flex items-start gap-2 sm:gap-3 cursor-pointer group"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() =>
-                                toggleChecklistItem("nutrition", index)
-                              }
-                              className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600 border-green-300 rounded focus:ring-green-500 mt-0.5 flex-shrink-0"
-                            />
-                            <span
-                              className={`text-xs sm:text-sm transition-all ${
-                                isChecked
-                                  ? "text-green-600 line-through opacity-75"
-                                  : "text-green-700 group-hover:text-green-800"
-                              }`}
-                            >
-                              {item}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Important Note */}
-                <div className="mt-4 sm:mt-6 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-3 sm:p-4">
-                  <div className="flex items-start gap-2 sm:gap-3">
-                    <IconShield className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold text-yellow-800 mb-1 text-sm sm:text-base">
-                        Catatan Penting
-                      </h4>
-                      <p className="text-xs sm:text-sm text-yellow-700">
-                        Checklist ini berdasarkan pedoman Buku KIA (Kesehatan
-                        Ibu dan Anak). Selalu konsultasikan dengan dokter atau
-                        bidan Anda untuk penyesuaian yang sesuai dengan kondisi
-                        kehamilan Anda.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
-        </AnimatePresence>
+
+          {/* Card 2: Pemantauan Gejala Mingguan */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-2xl shadow-lg border border-pink-100 overflow-hidden h-fit"
+          >
+            <div
+              className="bg-gradient-to-r from-[#D291BC] to-[#E2A8D6] p-4 cursor-pointer"
+              onClick={() => setExpandedSymptoms(!expandedSymptoms)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <IconHeartbeat className="w-6 h-6 text-white" />
+                  <div>
+                    <h2 className="text-xl font-bold text-white">
+                      Pemantauan Gejala Mingguan
+                    </h2>
+                    <p className="text-pink-100 text-sm">
+                      Pantau gejala dan tanda-tanda penting
+                    </p>
+                  </div>
+                </div>
+                <motion.div
+                  animate={{ rotate: expandedSymptoms ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <IconCalendarEvent className="w-5 h-5 text-white" />
+                </motion.div>
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {expandedSymptoms && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-6">
+                    {/* Danger Signs Section */}
+                    <div className="mb-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <IconAlertTriangle className="w-5 h-5 text-red-500" />
+                        <h3 className="text-lg font-semibold text-red-600">
+                          Tanda Bahaya Kehamilan
+                        </h3>
+                      </div>
+                      <div className="grid gap-3">
+                        {getDangerSymptoms().map((symptom) => {
+                          const isChecked =
+                            getJournalEntry().symptoms[symptom.id] || false;
+
+                          return (
+                            <motion.div
+                              key={symptom.id}
+                              className="border-2 border-red-200 rounded-xl p-4 bg-red-50"
+                              whileHover={{ scale: 1.01 }}
+                            >
+                              <label className="flex items-start gap-3 cursor-pointer">
+                                <div className="relative mt-1">
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => toggleSymptom(symptom.id)}
+                                    className="sr-only"
+                                  />
+                                  <div
+                                    className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                                      isChecked
+                                        ? "bg-red-500 border-red-500"
+                                        : "border-red-400 hover:border-red-500"
+                                    }`}
+                                  >
+                                    {isChecked && (
+                                      <IconCheck className="w-3 h-3 text-white" />
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-red-700">
+                                    {symptom.title}
+                                  </h4>
+                                  <p className="text-sm text-red-600 mt-1">
+                                    {symptom.description}
+                                  </p>
+                                </div>
+                              </label>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Normal Symptoms Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                        Gejala Umum Kehamilan
+                      </h3>
+                      <div className="grid gap-3">
+                        {getNormalSymptoms().map((symptom) => {
+                          const isChecked =
+                            getJournalEntry().symptoms[symptom.id] || false;
+
+                          return (
+                            <motion.div
+                              key={symptom.id}
+                              className="border border-gray-200 rounded-xl p-4 hover:bg-gray-50"
+                              whileHover={{ scale: 1.01 }}
+                            >
+                              <label className="flex items-start gap-3 cursor-pointer">
+                                <div className="relative mt-1">
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => toggleSymptom(symptom.id)}
+                                    className="sr-only"
+                                  />
+                                  <div
+                                    className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                                      isChecked
+                                        ? "bg-[#D291BC] border-[#D291BC]"
+                                        : "border-pink-300 hover:border-[#D291BC]"
+                                    }`}
+                                  >
+                                    {isChecked && (
+                                      <IconCheck className="w-3 h-3 text-white" />
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-gray-700">
+                                    {symptom.title}
+                                  </h4>
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    {symptom.description}
+                                  </p>
+                                </div>
+                              </label>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Notes for Symptoms */}
+                    <div className="mt-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <IconNotes className="w-4 h-4 inline mr-2" />
+                        Catatan Gejala & Keluhan
+                      </label>
+                      <textarea
+                        value={symptomsNotes}
+                        onChange={(e) => setSymptomsNotes(e.target.value)}
+                        placeholder="Deskripsikan gejala atau keluhan yang dirasakan secara detail..."
+                        className="w-full p-4 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-[#D291BC] transition-colors resize-none"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </div>
+
+        {/* Save Button */}
+        <div className="text-center pt-8">
+          <StatefulButton
+            onSubmit={async () => {
+              await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+              saveJournalEntry();
+            }}
+            className="px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl"
+          >
+            Simpan Catatan Minggu {selectedWeek}
+          </StatefulButton>
+        </div>
       </div>
+
+      {/* Warning Modal */}
+      {showWarning && currentWarning && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-2xl max-w-md w-full shadow-xl"
+          >
+            <div className="bg-red-600 rounded-t-2xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <IconAlertCircle className="w-6 h-6 text-white" />
+                <h3 className="text-lg font-bold text-white">
+                  Peringatan Tanda Bahaya
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowWarning(false)}
+                className="text-white hover:text-red-100"
+              >
+                <IconX className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-5">
+              <h4 className="text-xl font-semibold text-red-600 mb-3">
+                {currentWarning.title}
+              </h4>
+
+              <p className="text-gray-700 mb-4">{currentWarning.description}</p>
+
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                <p className="text-red-700 font-medium mb-2">
+                  Tindakan yang disarankan:
+                </p>
+                <ul className="list-disc list-inside text-red-700 space-y-1">
+                  <li>Segera hubungi dokter atau bidan Anda</li>
+                  <li>
+                    Jika tidak bisa dihubungi, datangi fasilitas kesehatan
+                    terdekat
+                  </li>
+                  <li>Siapkan dokumen kehamilan Anda (Buku KIA)</li>
+                  <li>Minta bantuan keluarga untuk menemani Anda</li>
+                </ul>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowWarning(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors font-medium"
+                >
+                  Tutup
+                </button>
+                <button className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-medium">
+                  Telepon Darurat
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
