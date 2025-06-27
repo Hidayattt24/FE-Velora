@@ -1,7 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { IconChevronRight, IconEdit, IconLock, IconMail, IconLogout, IconCamera } from "@tabler/icons-react";
+import {
+  IconChevronRight,
+  IconEdit,
+  IconLock,
+  IconMail,
+  IconLogout,
+  IconCamera,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
@@ -46,7 +53,9 @@ export default function ProfilePage() {
               </Link>
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-semibold text-[#D291BC] mb-1">{user.fullName}</h2>
+              <h2 className="text-xl font-semibold text-[#D291BC] mb-1">
+                {user.fullName}
+              </h2>
               <p className="text-[#D291BC]/70 text-sm mb-1">@{user.username}</p>
               <p className="text-[#D291BC]/70 text-sm">{user.email}</p>
             </div>

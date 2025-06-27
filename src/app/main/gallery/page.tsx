@@ -1,7 +1,16 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { IconPlus, IconCalendarEvent, IconX, IconDownload, IconArrowUp, IconTrash, IconClock, IconCheck } from "@tabler/icons-react";
+import {
+  IconPlus,
+  IconCalendarEvent,
+  IconX,
+  IconDownload,
+  IconArrowUp,
+  IconTrash,
+  IconClock,
+  IconCheck,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useOutsideClick } from "@/lib/hooks/use-outside-click";
@@ -16,7 +25,7 @@ const photos = [
     week: 12,
     date: "12 Maret 2024",
     imageUrl: "/main/gallery/gallery.jpg",
-    notes: "Pertama kali merasakan gerakan bayi!"
+    notes: "Pertama kali merasakan gerakan bayi!",
   },
   {
     id: 2,
@@ -24,7 +33,7 @@ const photos = [
     week: 16,
     date: "9 April 2024",
     imageUrl: "/main/gallery/gallery.jpg",
-    notes: "Baby bump mulai terlihat"
+    notes: "Baby bump mulai terlihat",
   },
   {
     id: 3,
@@ -32,7 +41,7 @@ const photos = [
     week: 20,
     date: "7 Mei 2024",
     imageUrl: "/main/gallery/gallery.jpg",
-    notes: "USG menunjukkan jenis kelamin bayi"
+    notes: "USG menunjukkan jenis kelamin bayi",
   },
   {
     id: 4,
@@ -40,14 +49,14 @@ const photos = [
     week: 24,
     date: "4 Juni 2024",
     imageUrl: "/main/gallery/gallery.jpg",
-    notes: "Perut semakin membesar"
+    notes: "Perut semakin membesar",
   },
 ];
 
 const weekRanges = [
   { label: "Trimester 1", range: [1, 12] },
   { label: "Trimester 2", range: [13, 27] },
-  { label: "Trimester 3", range: [28, 40] }
+  { label: "Trimester 3", range: [28, 40] },
 ];
 
 // Function to handle image download
@@ -56,25 +65,25 @@ const handleDownload = async (imageUrl: string, title: string) => {
     // Fetch the image
     const response = await fetch(imageUrl);
     const blob = await response.blob();
-    
+
     // Create a temporary link element
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = window.URL.createObjectURL(blob);
-    
+
     // Set the download filename
-    const filename = `${title.replace(/\s+/g, '_').toLowerCase()}.jpg`;
+    const filename = `${title.replace(/\s+/g, "_").toLowerCase()}.jpg`;
     link.download = filename;
-    
+
     // Append to body, click and remove
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     // Clean up the URL object
     window.URL.revokeObjectURL(link.href);
   } catch (error) {
-    console.error('Error downloading image:', error);
-    alert('Gagal mengunduh gambar. Silakan coba lagi.');
+    console.error("Error downloading image:", error);
+    alert("Gagal mengunduh gambar. Silakan coba lagi.");
   }
 };
 
@@ -163,23 +172,25 @@ function EmptyStateIllustration() {
         {[
           { cx: 300, cy: 200, delay: 1.4 },
           { cx: 100, cy: 180, delay: 1.6 },
-          { cx: 260, cy: 240, delay: 1.8 }
+          { cx: 260, cy: 240, delay: 1.8 },
         ].map((heart, index) => (
           <motion.path
             key={index}
-            d={`M${heart.cx-10},${heart.cy} a5,5 0 0,1 10,0 a5,5 0 0,1 10,0 q0,10 -10,15 q-10,-5 -10,-15`}
+            d={`M${heart.cx - 10},${
+              heart.cy
+            } a5,5 0 0,1 10,0 a5,5 0 0,1 10,0 q0,10 -10,15 q-10,-5 -10,-15`}
             fill="#D291BC"
             initial={{ scale: 0, opacity: 0 }}
             animate={{
               scale: [0, 1.2, 1],
               opacity: [0, 1, 1],
-              y: [0, -20, 0]
+              y: [0, -20, 0],
             }}
             transition={{
               delay: heart.delay,
               duration: 2,
               repeat: Infinity,
-              repeatDelay: 1
+              repeatDelay: 1,
             }}
           />
         ))}
@@ -222,8 +233,8 @@ function BackToTopButton() {
             transition: {
               type: "spring",
               stiffness: 260,
-              damping: 20
-            }
+              damping: 20,
+            },
           }}
           exit={{ opacity: 0, scale: 0.5 }}
           onClick={scrollToTop}
@@ -239,8 +250,8 @@ function BackToTopButton() {
             transition: {
               type: "spring",
               stiffness: 400,
-              damping: 10
-            }
+              damping: 10,
+            },
           }}
           whileTap={{ scale: 0.9 }}
         >
@@ -254,8 +265,12 @@ function BackToTopButton() {
 export default function GalleryPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
-  const [selectedTrimester, setSelectedTrimester] = useState<number | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+  const [selectedTrimester, setSelectedTrimester] = useState<number | null>(
+    null
+  );
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(
+    null
+  );
   const cardRef = useRef<HTMLDivElement>(null);
 
   useOutsideClick(cardRef, () => {
@@ -263,11 +278,13 @@ export default function GalleryPage() {
   });
 
   const filteredPhotos = selectedWeek
-    ? photos.filter(photo => photo.week === selectedWeek)
+    ? photos.filter((photo) => photo.week === selectedWeek)
     : selectedTrimester !== null
-    ? photos.filter(photo => {
+    ? photos.filter((photo) => {
         const trimester = weekRanges[selectedTrimester];
-        return photo.week >= trimester.range[0] && photo.week <= trimester.range[1];
+        return (
+          photo.week >= trimester.range[0] && photo.week <= trimester.range[1]
+        );
       })
     : photos;
 
@@ -357,7 +374,12 @@ export default function GalleryPage() {
               <div className="absolute bottom-[6px] right-0 w-8 bg-gradient-to-l from-white to-transparent h-2 z-10 sm:hidden" />
               <div className="flex flex-nowrap sm:flex-wrap sm:justify-center gap-2 w-full">
                 {Array.from(
-                  { length: weekRanges[selectedTrimester].range[1] - weekRanges[selectedTrimester].range[0] + 1 },
+                  {
+                    length:
+                      weekRanges[selectedTrimester].range[1] -
+                      weekRanges[selectedTrimester].range[0] +
+                      1,
+                  },
                   (_, i) => weekRanges[selectedTrimester].range[0] + i
                 ).map((week) => (
                   <button
@@ -390,17 +412,29 @@ export default function GalleryPage() {
               onClick={() => setSelectedId(photo.id)}
               className={cn(
                 "bg-white rounded-2xl sm:rounded-3xl shadow-lg overflow-hidden cursor-pointer group",
-                selectedId === photo.id ? "fixed inset-0 sm:inset-4 z-50 m-auto max-w-4xl h-fit" : "relative"
+                selectedId === photo.id
+                  ? "fixed inset-0 sm:inset-4 z-50 m-auto max-w-4xl h-fit"
+                  : "relative"
               )}
-              initial={selectedId === photo.id ? { opacity: 0, scale: 0.8 } : undefined}
-              animate={selectedId === photo.id ? { opacity: 1, scale: 1 } : undefined}
-              exit={selectedId === photo.id ? { opacity: 0, scale: 0.8 } : undefined}
+              initial={
+                selectedId === photo.id ? { opacity: 0, scale: 0.8 } : undefined
+              }
+              animate={
+                selectedId === photo.id ? { opacity: 1, scale: 1 } : undefined
+              }
+              exit={
+                selectedId === photo.id ? { opacity: 0, scale: 0.8 } : undefined
+              }
               transition={{ duration: 0.3 }}
             >
-              <div className={cn(
-                "relative",
-                selectedId === photo.id ? "aspect-video" : "aspect-square sm:aspect-[4/3]"
-              )}>
+              <div
+                className={cn(
+                  "relative",
+                  selectedId === photo.id
+                    ? "aspect-video"
+                    : "aspect-square sm:aspect-[4/3]"
+                )}
+              >
                 <img
                   src={photo.imageUrl}
                   alt={photo.title}
@@ -453,10 +487,12 @@ export default function GalleryPage() {
                   </div>
                 )}
               </div>
-              <motion.div 
+              <motion.div
                 className={cn(
                   "p-3 sm:p-6",
-                  selectedId === photo.id ? "space-y-4" : "space-y-1 sm:space-y-2"
+                  selectedId === photo.id
+                    ? "space-y-4"
+                    : "space-y-1 sm:space-y-2"
                 )}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
@@ -468,7 +504,7 @@ export default function GalleryPage() {
                     {photo.date}
                   </div>
                 </div>
-                
+
                 {selectedId === photo.id && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -476,10 +512,14 @@ export default function GalleryPage() {
                     exit={{ opacity: 0, y: 20 }}
                     className="space-y-4"
                   >
-                    <p className="text-sm sm:text-base text-gray-600">{photo.notes}</p>
+                    <p className="text-sm sm:text-base text-gray-600">
+                      {photo.notes}
+                    </p>
                     <div className="flex justify-end">
-                      <button 
-                        onClick={() => handleDownload(photo.imageUrl, photo.title)}
+                      <button
+                        onClick={() =>
+                          handleDownload(photo.imageUrl, photo.title)
+                        }
                         className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-[#D291BC] hover:text-[#c17ba6] transition-colors"
                       >
                         <IconDownload className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -535,12 +575,11 @@ export default function GalleryPage() {
             transition={{ delay: 0.5 }}
             className="text-sm sm:text-base text-gray-500 px-4"
           >
-            {selectedWeek 
+            {selectedWeek
               ? `Belum ada foto untuk minggu ke-${selectedWeek}. Tambahkan foto pertamamu!`
               : selectedTrimester !== null
               ? `Belum ada foto untuk ${weekRanges[selectedTrimester].label}. Tambahkan foto pertamamu!`
-              : "Belum ada foto yang diunggah. Mulai dokumentasikan perjalanan kehamilanmu!"
-            }
+              : "Belum ada foto yang diunggah. Mulai dokumentasikan perjalanan kehamilanmu!"}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -560,4 +599,4 @@ export default function GalleryPage() {
       )}
     </div>
   );
-} 
+}

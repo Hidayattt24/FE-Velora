@@ -11,6 +11,9 @@ import {
   IconStethoscope,
   IconHeartbeat,
   IconAlertCircle,
+  IconArrowUp,
+  IconChevronDown,
+  IconCircleCheck,
 } from "@tabler/icons-react";
 import { ProfileHeader } from "@/components/ui/profile-header";
 import { StatefulButton } from "@/components/aceternity/stateful-button";
@@ -237,10 +240,13 @@ export default function TimelinePage() {
   // State for current warning symptom
   const [currentWarning, setCurrentWarning] = useState<Symptom | null>(null);
 
-  // State for card expansion
+  // State for scroll-to-top button visibility
+  const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
+
+  // State for card expansion (cards start collapsed)
   const [expandedHealthServices, setExpandedHealthServices] =
-    useState<boolean>(true);
-  const [expandedSymptoms, setExpandedSymptoms] = useState<boolean>(true);
+    useState<boolean>(false);
+  const [expandedSymptoms, setExpandedSymptoms] = useState<boolean>(false);
 
   // Initialize or load journal entry for the selected week
   useEffect(() => {
@@ -263,6 +269,16 @@ export default function TimelinePage() {
       setSelectedWeek(weeksInTrimester[0]);
     }
   }, [selectedTrimester]);
+
+  // Handle scroll to show/hide scroll-to-top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Get or create a journal entry for the current week
   const getJournalEntry = (): JournalEntry => {
@@ -347,8 +363,33 @@ export default function TimelinePage() {
     return symptomsData.filter((symptom) => !symptom.isDanger);
   };
 
+  // Check if a week has been filled (has any data)
+  const isWeekFilled = (week: number): boolean => {
+    const entry = journalEntries[week];
+    if (!entry) return false;
+
+    // Check if any health services are checked
+    const hasHealthServices = Object.values(entry.healthServices).some(Boolean);
+
+    // Check if any symptoms are checked
+    const hasSymptoms = Object.values(entry.symptoms).some(Boolean);
+
+    // Check if any notes are filled
+    const hasNotes =
+      (entry.healthServicesNotes &&
+        entry.healthServicesNotes.trim().length > 0) ||
+      (entry.symptomsNotes && entry.symptomsNotes.trim().length > 0);
+
+    return hasHealthServices || hasSymptoms || !!hasNotes;
+  };
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FDF6F8] to-white pb-8">
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
       {/* Profile Header */}
       <ProfileHeader />
 
@@ -390,23 +431,47 @@ export default function TimelinePage() {
 
         {/* Week Selector Grid */}
         <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4 text-center">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2 text-center">
             Pilih Minggu Kehamilan (Trimester {selectedTrimester})
           </h3>
+          <p className="text-sm text-gray-500 text-center mb-4">
+            <IconCheck className="w-4 h-4 inline text-green-500 mr-1" />
+            Minggu dengan tanda hijau sudah diisi
+          </p>
           <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-            {getWeeksInTrimester(selectedTrimester).map((week) => (
-              <button
-                key={week}
-                onClick={() => setSelectedWeek(week)}
-                className={`p-3 rounded-xl font-medium text-sm transition-all duration-200 ${
-                  selectedWeek === week
-                    ? "bg-[#D291BC] text-white shadow-md scale-105"
-                    : "bg-white text-[#D291BC] border border-pink-200 hover:bg-pink-50"
-                }`}
-              >
-                {week}
-              </button>
-            ))}
+            {getWeeksInTrimester(selectedTrimester).map((week) => {
+              const isFilled = isWeekFilled(week);
+              return (
+                <button
+                  key={week}
+                  onClick={() => setSelectedWeek(week)}
+                  className={`relative p-3 rounded-xl font-medium text-sm transition-all duration-200 ${
+                    selectedWeek === week
+                      ? "bg-[#D291BC] text-white shadow-md scale-105"
+                      : "bg-white text-[#D291BC] border border-pink-200 hover:bg-pink-50"
+                  }`}
+                >
+                  {week}
+                  {/* Green indicator for filled weeks */}
+                  {isFilled && (
+                    <motion.div
+                      className="absolute -top-1 -right-1"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 30,
+                      }}
+                    >
+                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow-sm border-2 border-white">
+                        <IconCheck className="w-3 h-3 text-white" />
+                      </div>
+                    </motion.div>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -438,7 +503,7 @@ export default function TimelinePage() {
                   animate={{ rotate: expandedHealthServices ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <IconCalendarEvent className="w-5 h-5 text-white" />
+                  <IconChevronDown className="w-5 h-5 text-white" />
                 </motion.div>
               </div>
             </div>
@@ -564,7 +629,7 @@ export default function TimelinePage() {
                   animate={{ rotate: expandedSymptoms ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <IconCalendarEvent className="w-5 h-5 text-white" />
+                  <IconChevronDown className="w-5 h-5 text-white" />
                 </motion.div>
               </div>
             </div>
@@ -718,6 +783,23 @@ export default function TimelinePage() {
           </StatefulButton>
         </div>
       </div>
+
+      {/* Scroll to Top Button */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-6 z-40 bg-[#D291BC] hover:bg-[#C280AB] text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <IconArrowUp className="w-6 h-6" />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Warning Modal */}
       {showWarning && currentWarning && (
