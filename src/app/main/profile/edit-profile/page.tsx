@@ -10,7 +10,7 @@ export default function EditProfilePage() {
   const [username, setUsername] = useState("sarahmommy");
 
   return (
-    <div className="h-screen bg-gradient-to-br from-white via-[#FFE3EC]/30 to-[#D291BC]/10 p-4 md:p-6 flex items-center justify-center">
+    <div className="h-screen bg-gradient-to-br from-white via-[#FFE3EC]/20 to-[#D291BC]/5 p-4 md:p-6 flex items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -32,7 +32,9 @@ export default function EditProfilePage() {
               <div className="bg-[#FFE3EC] p-2.5 rounded-xl">
                 <IconUser className="w-5 h-5 text-[#D291BC]" />
               </div>
-              <h1 className="text-xl font-semibold text-[#D291BC]">Edit Profile</h1>
+              <h1 className="text-xl font-semibold text-[#D291BC]">
+                Edit Profile
+              </h1>
             </div>
           </div>
 
@@ -64,7 +66,7 @@ export default function EditProfilePage() {
               />
             </div>
             <div className="flex gap-3 pt-4">
-              <Link 
+              <Link
                 href="/main/profile"
                 className="flex-1 py-3.5 px-4 rounded-2xl border border-[#D291BC] text-[#D291BC] font-medium text-center hover:bg-[#D291BC]/5 transition-colors"
               >

@@ -20,7 +20,7 @@ export default function EditPhotoPage() {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-white via-[#FFE3EC]/30 to-[#D291BC]/10 p-4 md:p-6 flex items-center justify-center overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-white via-[#FFE3EC]/20 to-[#D291BC]/5 p-4 md:p-6 flex items-center justify-center overflow-hidden">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
