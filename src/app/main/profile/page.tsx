@@ -22,74 +22,86 @@ export default function ProfilePage() {
   });
 
   return (
-    <div className="h-screen bg-gradient-to-br from-white via-[#FFE3EC]/20 to-[#D291BC]/5 p-4 md:p-6 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-white via-[#FFE3EC]/20 to-[#D291BC]/5 flex items-center justify-center px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-md mx-auto relative"
+        className="w-full max-w-sm mx-auto lg:max-w-5xl lg:grid lg:grid-cols-12 lg:gap-10 space-y-6 lg:space-y-0"
       >
         {/* Profile Card */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg p-6 mb-6 border border-[#D291BC]/10">
-          <div className="flex items-center gap-6">
-            <div className="relative group">
-              <div className="rounded-2xl overflow-hidden transition-transform duration-300 group-hover:scale-105">
+        <div className="lg:col-span-5 bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-6 lg:p-8 border border-white/20">
+          <div className="flex flex-col items-center text-center lg:text-center">
+            <div className="relative group mb-6">
+              <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl overflow-hidden transition-transform duration-300 group-hover:scale-105 shadow-lg">
                 <Image
                   src={user.photo}
                   alt="Profile"
-                  width={90}
-                  height={90}
-                  className="object-cover"
+                  width={128}
+                  height={128}
+                  className="w-full h-full object-cover"
                 />
               </div>
               <Link href="/main/profile/edit-photo">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="absolute -bottom-2 -right-2 bg-[#D291BC] text-white p-2 rounded-xl shadow-lg"
+                  className="absolute -bottom-2 -right-2 bg-[#D291BC] text-white p-2.5 lg:p-3 rounded-xl shadow-lg hover:bg-pink-400 transition-colors"
                 >
-                  <IconCamera className="w-4 h-4" />
+                  <IconCamera className="w-4 h-4 lg:w-5 lg:h-5" />
                 </motion.button>
               </Link>
             </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-semibold text-[#D291BC] mb-1">
+            <div className="w-full">
+              <h2 className="text-xl lg:text-2xl font-bold text-[#D291BC] mb-2">
                 {user.fullName}
               </h2>
-              <p className="text-[#D291BC]/70 text-sm mb-1">@{user.username}</p>
-              <p className="text-[#D291BC]/70 text-sm">{user.email}</p>
+              <p className="text-[#D291BC]/70 text-sm lg:text-base font-medium mb-2">
+                @{user.username}
+              </p>
+              <p className="text-[#D291BC]/60 text-sm lg:text-base">
+                {user.email}
+              </p>
             </div>
           </div>
         </div>
 
         {/* Menu Items */}
-        <div className="space-y-3">
-          <ProfileMenuItem
-            href="/main/profile/edit-profile"
-            icon={<IconEdit className="w-4 h-4" />}
-            label="Edit Profile"
-          />
-          <ProfileMenuItem
-            href="/main/profile/change-password"
-            icon={<IconLock className="w-4 h-4" />}
-            label="Change Password"
-          />
-          <ProfileMenuItem
-            href="/main/profile/edit-email"
-            icon={<IconMail className="w-4 h-4" />}
-            label="Change Email"
-          />
-        </div>
+        <div className="lg:col-span-7 space-y-4">
+          <h3 className="text-2xl lg:text-5xl font-bold text-[#D291BC] mb-6 lg:mb-8">
+            Account Settings
+          </h3>
+          <div className="grid gap-4 lg:gap-5">
+            <ProfileMenuItem
+              href="/main/profile/edit-profile"
+              icon={<IconEdit className="w-5 h-5" />}
+              label="Edit Profile"
+              description="Update your personal information"
+            />
+            <ProfileMenuItem
+              href="/main/profile/change-password"
+              icon={<IconLock className="w-5 h-5" />}
+              label="Change Password"
+              description="Update your account security"
+            />
+            <ProfileMenuItem
+              href="/main/profile/edit-email"
+              icon={<IconMail className="w-5 h-5" />}
+              label="Change Email"
+              description="Update your email address"
+            />
+          </div>
 
-        {/* Logout Button */}
-        <motion.button
-          whileHover={{ scale: 1.01, y: -2 }}
-          whileTap={{ scale: 0.99 }}
-          className="w-full mt-6 py-3.5 bg-gradient-to-r from-[#D291BC] to-pink-400 text-white font-medium rounded-2xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
-        >
-          <IconLogout className="w-4 h-4" />
-          Logout
-        </motion.button>
+          {/* Logout Button */}
+          <motion.button
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full py-4 lg:py-5 bg-gradient-to-r from-[#D291BC] to-pink-400 text-white font-semibold rounded-2xl flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transition-all duration-300 mt-8"
+          >
+            <IconLogout className="w-5 h-5" />
+            <span className="text-base lg:text-lg">Logout</span>
+          </motion.button>
+        </div>
       </motion.div>
     </div>
   );
@@ -99,24 +111,36 @@ function ProfileMenuItem({
   href,
   icon,
   label,
+  description,
 }: {
   href: string;
   icon: React.ReactNode;
   label: string;
+  description?: string;
 }) {
   return (
     <Link href={href}>
       <motion.div
         whileHover={{ scale: 1.02, x: 4 }}
-        className="flex items-center justify-between p-4 bg-white/70 backdrop-blur-sm rounded-2xl shadow-sm hover:shadow-md transition-all border border-[#D291BC]/10"
+        whileTap={{ scale: 0.98 }}
+        className="flex items-center justify-between p-4 lg:p-5 bg-white/80 backdrop-blur-md rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 border border-white/20 active:bg-white/90"
       >
         <div className="flex items-center gap-4">
-          <div className="bg-[#FFE3EC] p-2.5 rounded-xl">
+          <div className="bg-gradient-to-br from-[#FFE3EC] to-[#F8BBD9] p-3 rounded-xl shadow-sm">
             <div className="text-[#D291BC]">{icon}</div>
           </div>
-          <span className="font-medium text-[#D291BC]/90">{label}</span>
+          <div>
+            <span className="font-semibold text-[#D291BC]/90 text-sm lg:text-base block">
+              {label}
+            </span>
+            {description && (
+              <span className="text-[#D291BC]/60 text-xs lg:text-sm">
+                {description}
+              </span>
+            )}
+          </div>
         </div>
-        <IconChevronRight className="w-4 h-4 text-[#D291BC]/60" />
+        <IconChevronRight className="w-4 h-4 lg:w-5 lg:h-5 text-[#D291BC]/50" />
       </motion.div>
     </Link>
   );
