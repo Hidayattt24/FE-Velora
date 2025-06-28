@@ -5,7 +5,6 @@ import {
   IconBookmark,
   IconClock,
   IconShare,
-  IconSearch,
   IconFilter,
   IconStar,
   IconBabyCarriage,
@@ -20,6 +19,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { ProfileHeader } from "@/components/ui/profile-header";
+import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 import {
   trendingArticles,
   breakingNews,
@@ -235,9 +235,25 @@ export default function JournalPage() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white rounded-3xl shadow-sm p-6 mb-6 border border-[#D291BC]/10"
+          className="rounded-3xl  p-6 mb-6  border-[#D291BC]/10"
         >
           <ProfileHeader />
+        </motion.div>
+
+        {/* Page Title */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.05 }}
+          className="mb-6 text-center"
+        >
+          <h1 className="text-3xl md:text-4xl font-bold text-[#D291BC] mb-3">
+            Jurnal Kehamilan
+          </h1>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Temukan artikel terbaru dan tips bermanfaat seputar kehamilan,
+            kesehatan ibu dan bayi, serta panduan persiapan menjadi orang tua
+          </p>
         </motion.div>
 
         {/* Search Bar */}
@@ -245,18 +261,23 @@ export default function JournalPage() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="bg-white rounded-3xl shadow-sm p-6 mb-6 border border-[#D291BC]/10"
+          className="mb-6"
         >
-          <div className="relative max-w-md mx-auto">
-            <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Cari artikel..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#D291BC]/20 focus:border-[#D291BC] transition-all"
-            />
-          </div>
+          <PlaceholdersAndVanishInput
+            placeholders={[
+              "Cari artikel tentang kehamilan...",
+              "Tips perawatan ibu hamil...",
+              "Nutrisi untuk kehamilan sehat...",
+              "Gejala kehamilan yang normal...",
+              "Persiapan persalinan...",
+              "Kesehatan mental ibu hamil...",
+            ]}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onSubmit={(e) => {
+              e.preventDefault();
+              // Handle search submission if needed
+            }}
+          />
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -423,11 +444,6 @@ export default function JournalPage() {
                               <span className="text-gray-400">•</span>
                               <span>{article.author}</span>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button className="hover:text-[#D291BC] transition-colors">
-                              <IconShare className="w-3 h-3" />
-                            </button>
                           </div>
                         </div>
 
