@@ -126,13 +126,22 @@ export default function JournalPage() {
 
   useEffect(() => {
     setMounted(true);
+    // Load bookmarked articles from localStorage
+    const saved = localStorage.getItem("bookmarkedArticles");
+    if (saved) {
+      setBookmarkedArticles(JSON.parse(saved));
+    }
   }, []);
 
   const toggleBookmark = (articleId: string) => {
-    setBookmarkedArticles((prev) =>
-      prev.includes(articleId)
-        ? prev.filter((id) => id !== articleId)
-        : [...prev, articleId]
+    const updatedBookmarks = bookmarkedArticles.includes(articleId)
+      ? bookmarkedArticles.filter((id) => id !== articleId)
+      : [...bookmarkedArticles, articleId];
+
+    setBookmarkedArticles(updatedBookmarks);
+    localStorage.setItem(
+      "bookmarkedArticles",
+      JSON.stringify(updatedBookmarks)
     );
   };
 
@@ -332,13 +341,17 @@ export default function JournalPage() {
 
               {/* Bookmark Section */}
               <div className="mt-6 pt-6 border-t border-gray-100 hidden lg:block">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                  <IconBookmark className="w-5 h-5 text-[#D291BC]" />
-                  Artikel Tersimpan
-                </h3>
-                <p className="text-sm text-gray-600">
-                  {mounted ? bookmarkedArticles.length : 0} artikel disimpan
-                </p>
+                <Link href="/main/journal/saved">
+                  <div className="cursor-pointer hover:bg-gray-50 p-3 rounded-2xl transition-colors">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                      <IconBookmark className="w-5 h-5 text-[#D291BC]" />
+                      Artikel Tersimpan
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {mounted ? bookmarkedArticles.length : 0} artikel disimpan
+                    </p>
+                  </div>
+                </Link>
               </div>
             </div>
           </motion.div>
@@ -462,6 +475,49 @@ export default function JournalPage() {
             )}
           </div>
         </div>
+
+        {/* Mobile: Saved Articles Link */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="lg:hidden mt-6"
+        >
+          <Link href="/main/journal/saved">
+            <div className="bg-white rounded-3xl shadow-sm p-4 border border-[#D291BC]/10 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-[#FFE3EC] p-2.5 rounded-xl">
+                    <IconBookmark className="w-5 h-5 text-[#D291BC]" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800">
+                      Artikel Tersimpan
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {mounted ? bookmarkedArticles.length : 0} artikel disimpan
+                    </p>
+                  </div>
+                </div>
+                <div className="text-[#D291BC]">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </motion.div>
       </div>
     </div>
   );
