@@ -9,56 +9,9 @@ interface Article {
   readTime: string;
 }
 
-export const featuredArticles: Article[] = [
-  {
-    id: "1",
-    title: "Understanding Maternal Health Risks",
-    description:
-      "A comprehensive guide to identifying and managing maternal health risks during pregnancy.",
-    image: "/main/journal/journal.jpg",
-    category: "Health",
-    author: "Dr. Sarah Johnson",
-    authorImage: "/main/journal/photo-profile.jpg",
-    readTime: "5 min read",
-  },
-  {
-    id: "2",
-    title: "Essential Nutrients During Pregnancy: A Complete Guide",
-    description:
-      "Learn about the vital nutrients needed during pregnancy for both mother and baby.",
-    image: "/main/journal/journal.jpg",
-    category: "Nutrition",
-    author: "Dr. Emily Brown",
-    authorImage: "/main/journal/photo-profile.jpg",
-    readTime: "6 min read",
-  },
-  {
-    id: "3",
-    title: "Safe Exercise During Pregnancy: What You Need to Know",
-    description:
-      "Guidelines for staying active safely during your pregnancy journey.",
-    image: "/main/journal/journal.jpg",
-    category: "Fitness",
-    author: "Dr. Michael Chen",
-    authorImage: "/main/journal/photo-profile.jpg",
-    readTime: "7 min read",
-  },
-  {
-    id: "4",
-    title: "Safe Exercise During Pregnancy: What You Need to Know",
-    description:
-      "Guidelines for staying active safely during your pregnancy journey.",
-    image: "/main/journal/journal.jpg",
-    category: "Fitness",
-    author: "Dr. Michael Chen",
-    authorImage: "/main/journal/photo-profile.jpg",
-    readTime: "7 min read",
-  },
-];
-
 export const trendingArticles: Article[] = [
   {
-    id: "1",
+    id: "trending-1",
     title: "Latest Developments in Maternal Care",
     description:
       "Exploring recent advancements in maternal healthcare technology and practices.",
@@ -69,7 +22,7 @@ export const trendingArticles: Article[] = [
     readTime: "4 min read",
   },
   {
-    id: "2",
+    id: "trending-2",
     title: "First Trimester Must-Knows: A Week-by-Week Guide",
     description:
       "Everything you need to know about your first trimester of pregnancy.",
@@ -80,7 +33,7 @@ export const trendingArticles: Article[] = [
     readTime: "8 min read",
   },
   {
-    id: "3",
+    id: "trending-3",
     title: "Preparing Your Home for Baby: Essential Checklist",
     description:
       "A comprehensive guide to preparing your home for your new arrival.",
@@ -91,7 +44,7 @@ export const trendingArticles: Article[] = [
     readTime: "6 min read",
   },
   {
-    id: "4",
+    id: "trending-4",
     title: "Healthy Pregnancy Snacks for Every Trimester",
     description:
       "Nutritious and delicious snack ideas for your pregnancy journey.",
@@ -105,7 +58,7 @@ export const trendingArticles: Article[] = [
 
 export const breakingNews: Article[] = [
   {
-    id: "1",
+    id: "breaking-1",
     title: "New Study Reveals Key Factors in Maternal Health",
     description:
       "Recent research highlights important factors affecting maternal health outcomes.",
@@ -116,7 +69,7 @@ export const breakingNews: Article[] = [
     readTime: "3 min read",
   },
   {
-    id: "2",
+    id: "breaking-2",
     title: "New Study Reveals Benefits of Meditation During Pregnancy",
     description:
       "Research shows significant benefits of meditation for expectant mothers.",
@@ -127,7 +80,7 @@ export const breakingNews: Article[] = [
     readTime: "5 min read",
   },
   {
-    id: "3",
+    id: "breaking-3",
     title: "Revolutionary Prenatal Care App Launches Worldwide",
     description:
       "New mobile app aims to transform prenatal care accessibility.",
@@ -141,7 +94,7 @@ export const breakingNews: Article[] = [
 
 export const blogArticles: Article[] = [
   {
-    id: "1",
+    id: "blog-1",
     title: "A Mother's Journey Through Healthcare",
     description:
       "Personal experiences and insights from maternal healthcare journey.",
@@ -152,7 +105,7 @@ export const blogArticles: Article[] = [
     readTime: "6 min read",
   },
   {
-    id: "2",
+    id: "blog-2",
     title: "The Complete Guide to Pregnancy Sleep Positions",
     description:
       "Learn about the best sleeping positions for each trimester and tips for getting better rest during pregnancy.",
@@ -161,5 +114,77 @@ export const blogArticles: Article[] = [
     author: "Dr. Sarah Johnson",
     authorImage: "/main/journal/photo-profile.jpg",
     readTime: "7 min read",
+  },
+  {
+    id: "blog-3",
+    title: "Managing Pregnancy Anxiety: Tips from Mental Health Experts",
+    description:
+      "Practical strategies for dealing with pregnancy-related anxiety and stress.",
+    image: "/main/journal/journal.jpg",
+    category: "Mental Health",
+    author: "Dr. Lisa Thompson",
+    authorImage: "/main/journal/photo-profile.jpg",
+    readTime: "8 min read",
+  },
+  {
+    id: "blog-4",
+    title: "Essential Pregnancy Care Checklist for Each Trimester",
+    description:
+      "Complete guide to prenatal care appointments and what to expect during each trimester.",
+    image: "/main/journal/journal.jpg",
+    category: "Pregnancy Care",
+    author: "Dr. Michael Chen",
+    authorImage: "/main/journal/photo-profile.jpg",
+    readTime: "10 min read",
+  },
+];
+
+export const mentalHealthArticles: Article[] = [
+  {
+    id: "mental-1",
+    title: "Postpartum Depression: Signs and Support",
+    description:
+      "Understanding the signs of postpartum depression and finding the right support.",
+    image: "/main/journal/journal.jpg",
+    category: "Mental Health",
+    author: "Dr. Anna Wilson",
+    authorImage: "/main/journal/photo-profile.jpg",
+    readTime: "6 min read",
+  },
+  {
+    id: "mental-2",
+    title: "Mindfulness During Pregnancy: A Complete Guide",
+    description:
+      "How to practice mindfulness and reduce stress during your pregnancy journey.",
+    image: "/main/journal/journal.jpg",
+    category: "Mental Health",
+    author: "Dr. Lisa Thompson",
+    authorImage: "/main/journal/photo-profile.jpg",
+    readTime: "7 min read",
+  },
+];
+
+export const pregnancyCareArticles: Article[] = [
+  {
+    id: "care-1",
+    title: "First Prenatal Visit: What to Expect",
+    description:
+      "Complete guide to your first prenatal appointment and how to prepare.",
+    image: "/main/journal/journal.jpg",
+    category: "Pregnancy Care",
+    author: "Dr. Sarah Johnson",
+    authorImage: "/main/journal/photo-profile.jpg",
+    readTime: "5 min read",
+  },
+  {
+    id: "care-2",
+    title: "High-Risk Pregnancy: Understanding Your Care Plan",
+    description:
+      "What constitutes a high-risk pregnancy and how specialized care can help.",
+    image: "/main/journal/journal.jpg",
+    category: "Pregnancy Care",
+    author: "Dr. Michael Chen",
+    authorImage: "/main/journal/photo-profile.jpg",
+    readTime: "9 min read",
   },
 ];

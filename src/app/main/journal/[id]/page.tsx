@@ -4,10 +4,11 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { ProfileHeader } from "@/components/ui/profile-header";
 import {
-  featuredArticles,
   trendingArticles,
   breakingNews,
   blogArticles,
+  mentalHealthArticles,
+  pregnancyCareArticles,
 } from "@/lib/data/journal-articles";
 
 // Mock data for local articles that matches the main journal page
@@ -87,10 +88,11 @@ export default function ArticlePage() {
 
   // Combine all articles to find the one with matching id
   const allArticles = [
-    ...featuredArticles,
     ...trendingArticles,
     ...breakingNews,
     ...blogArticles,
+    ...mentalHealthArticles,
+    ...pregnancyCareArticles,
     ...localArticles,
   ];
   const article = allArticles.find((article) => article.id === id);

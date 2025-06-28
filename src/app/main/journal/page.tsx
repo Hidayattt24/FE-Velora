@@ -4,8 +4,6 @@ import { motion } from "framer-motion";
 import {
   IconBookmark,
   IconClock,
-  IconEye,
-  IconHeart,
   IconShare,
   IconSearch,
   IconFilter,
@@ -19,14 +17,15 @@ import {
   IconFileText,
 } from "@tabler/icons-react";
 import Link from "next/link";
-import { useState } from "react";
 import Image from "next/image";
+import { useState, useEffect } from "react";
 import { ProfileHeader } from "@/components/ui/profile-header";
 import {
-  featuredArticles,
   trendingArticles,
   breakingNews,
   blogArticles,
+  mentalHealthArticles,
+  pregnancyCareArticles,
 } from "@/lib/data/journal-articles";
 
 // Interface untuk artikel yang diperlukan di halaman ini
@@ -48,31 +47,34 @@ interface ArticleExtended {
 }
 
 // Transform external articles to match our interface and add additional data
-const transformArticleData = (articles: any[]): ArticleExtended[] => {
+const transformArticleData = (
+  articles: any[],
+  source: string
+): ArticleExtended[] => {
   return articles.map((article, index) => ({
     ...article,
+    id: article.id, // Use original ID from the data
     excerpt:
       article.description ||
       "Artikel informatif seputar kehamilan dan kesehatan ibu hamil...",
     content: article.description || "Konten artikel akan tersedia segera...",
-    views: Math.floor(Math.random() * 2000) + 500, // Random views
-    likes: Math.floor(Math.random() * 200) + 20, // Random likes
+    views: 0, // Remove views
+    likes: 0, // Remove likes
     tags: [article.category.toLowerCase(), "kehamilan", "tips"],
-    isBookmarked: Math.random() > 0.7, // Random bookmark status
-    publishedAt: new Date(Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // Random date in last 10 days
+    isBookmarked: false, // Set default to false to avoid hydration mismatch
+    publishedAt: "2024-12-15", // Fixed date to avoid hydration issues
   }));
 };
 
-// Combine and transform all articles
+// Combine and transform all articles (removed featured articles)
 const allExternalArticles = [
-  ...featuredArticles,
-  ...trendingArticles,
-  ...breakingNews,
-  ...blogArticles,
+  ...transformArticleData(trendingArticles, "trending"),
+  ...transformArticleData(breakingNews, "breaking"),
+  ...transformArticleData(blogArticles, "blog"),
+  ...transformArticleData(mentalHealthArticles, "mental"),
+  ...transformArticleData(pregnancyCareArticles, "care"),
 ];
-const articles = transformArticleData(allExternalArticles);
+const articles = allExternalArticles;
 
 // Generate categories based on actual article data
 const generateCategories = () => {
@@ -82,15 +84,19 @@ const generateCategories = () => {
   }, {} as Record<string, number>);
 
   const categoryIcons = {
-    Health: <IconShield className="w-4 h-4" />,
+    Technology: <IconShield className="w-4 h-4" />,
+    Education: <IconFileText className="w-4 h-4" />,
+    Lifestyle: <IconMoodSmile className="w-4 h-4" />,
     Nutrition: <IconApple className="w-4 h-4" />,
-    Fitness: <IconActivity className="w-4 h-4" />,
-    Psychology: <IconMoodSmile className="w-4 h-4" />,
-    General: <IconStar className="w-4 h-4" />,
-    "Trimester 1": <IconBabyCarriage className="w-4 h-4" />,
-    "Trimester 2": <IconHeartbeat className="w-4 h-4" />,
-    "Trimester 3": <IconApple className="w-4 h-4" />,
+    Research: <IconActivity className="w-4 h-4" />,
+    Blog: <IconFileText className="w-4 h-4" />,
+    Wellness: <IconHeartbeat className="w-4 h-4" />,
+    "Mental Health": <IconMoodSmile className="w-4 h-4" />,
+    "Pregnancy Care": <IconBabyCarriage className="w-4 h-4" />,
   };
+
+  // Only include categories that have articles
+  const existingCategories = Object.keys(categoryCounts);
 
   const categories = [
     {
@@ -98,12 +104,12 @@ const generateCategories = () => {
       icon: <IconStar className="w-4 h-4" />,
       count: articles.length,
     },
-    ...Object.entries(categoryCounts).map(([category, count]) => ({
+    ...existingCategories.map((category) => ({
       name: category,
       icon: categoryIcons[category as keyof typeof categoryIcons] || (
         <IconFileText className="w-4 h-4" />
       ),
-      count,
+      count: categoryCounts[category] || 0,
     })),
   ];
 
@@ -115,11 +121,12 @@ const categories = generateCategories();
 export default function JournalPage() {
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [searchTerm, setSearchTerm] = useState("");
-  const [bookmarkedArticles, setBookmarkedArticles] = useState<string[]>(
-    articles
-      .filter((article) => article.isBookmarked)
-      .map((article) => article.id)
-  );
+  const [bookmarkedArticles, setBookmarkedArticles] = useState<string[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleBookmark = (articleId: string) => {
     setBookmarkedArticles((prev) =>
@@ -140,8 +147,6 @@ export default function JournalPage() {
       );
     return matchesCategory && matchesSearch;
   });
-
-  const featuredArticle = filteredArticles[0] || articles[0]; // Featured article (most recent or popular)
 
   // Empty state component with interactive SVG
   const EmptyState = ({ category }: { category: string }) => (
@@ -253,15 +258,52 @@ export default function JournalPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="lg:col-span-1"
           >
-            <div className="bg-white rounded-3xl shadow-sm p-6 border border-[#D291BC]/10 sticky top-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <div className="bg-white rounded-3xl shadow-sm p-4 lg:p-6 border border-[#D291BC]/10 sticky top-6">
+              <h2 className="text-lg lg:text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 <IconFilter className="w-5 h-5 text-[#D291BC]" />
                 Kategori
               </h2>
-              <div className="space-y-2">
+
+              {/* Mobile: Horizontal scrollable categories */}
+              <div className="lg:hidden">
+                <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+                  {categories.map((category, index) => (
+                    <button
+                      key={`mobile-${category.name}-${index}`}
+                      onClick={() => setSelectedCategory(category.name)}
+                      className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-full transition-all text-xs font-medium ${
+                        selectedCategory === category.name
+                          ? "bg-gradient-to-r from-[#D291BC] to-pink-400 text-white"
+                          : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      <span className="w-3 h-3 flex-shrink-0">
+                        {category.icon}
+                      </span>
+                      <span className="whitespace-nowrap text-xs">
+                        {category.name}
+                      </span>
+                      {category.count > 0 && (
+                        <span
+                          className={`text-xs px-1 py-0.5 rounded-full min-w-[16px] text-center leading-none ${
+                            selectedCategory === category.name
+                              ? "bg-white/20 text-white"
+                              : "bg-gray-200 text-gray-600"
+                          }`}
+                        >
+                          {category.count}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Desktop: Vertical categories */}
+              <div className="hidden lg:block space-y-2">
                 {categories.map((category, index) => (
                   <button
-                    key={index}
+                    key={`desktop-${category.name}-${index}`}
                     onClick={() => setSelectedCategory(category.name)}
                     className={`w-full flex items-center justify-between p-3 rounded-2xl transition-all ${
                       selectedCategory === category.name
@@ -289,13 +331,13 @@ export default function JournalPage() {
               </div>
 
               {/* Bookmark Section */}
-              <div className="mt-6 pt-6 border-t border-gray-100">
+              <div className="mt-6 pt-6 border-t border-gray-100 hidden lg:block">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   <IconBookmark className="w-5 h-5 text-[#D291BC]" />
                   Artikel Tersimpan
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {bookmarkedArticles.length} artikel disimpan
+                  {mounted ? bookmarkedArticles.length : 0} artikel disimpan
                 </p>
               </div>
             </div>
@@ -307,79 +349,31 @@ export default function JournalPage() {
               <EmptyState category={selectedCategory} />
             ) : (
               <>
-                {/* Featured Article */}
-                {featuredArticle && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className="bg-white rounded-3xl shadow-sm overflow-hidden border border-[#D291BC]/10"
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-                      <div className="relative">
-                        <div className="aspect-video bg-gradient-to-br from-[#FFE3EC] to-[#D291BC]/20 rounded-2xl flex items-center justify-center">
-                          <IconBabyCarriage className="w-16 h-16 text-[#D291BC]" />
-                        </div>
-                        <div className="absolute top-3 left-3 bg-[#D291BC] text-white px-3 py-1 rounded-full text-xs font-medium">
-                          Featured
-                        </div>
-                      </div>
-                      <div className="flex flex-col justify-center">
-                        <div className="mb-3">
-                          <span className="bg-[#FFE3EC] text-[#C86B85] px-3 py-1 rounded-full text-xs font-medium">
-                            {featuredArticle.category}
-                          </span>
-                        </div>
-                        <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-3">
-                          {featuredArticle.title}
-                        </h2>
-                        <p className="text-gray-600 mb-4 line-clamp-3">
-                          {featuredArticle.excerpt}
-                        </p>
-                        <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                          <div className="flex items-center gap-1">
-                            <IconClock className="w-4 h-4" />
-                            {featuredArticle.readTime}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <IconEye className="w-4 h-4" />
-                            {featuredArticle.views}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <IconHeart className="w-4 h-4" />
-                            {featuredArticle.likes}
-                          </div>
-                        </div>
-                        <Link href={`/main/journal/${featuredArticle.id}`}>
-                          <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="bg-gradient-to-r from-[#D291BC] to-pink-400 text-white px-6 py-3 rounded-2xl font-medium hover:shadow-lg transition-all w-full md:w-auto"
-                          >
-                            Baca Selengkapnya
-                          </motion.button>
-                        </Link>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
                 {/* Articles Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredArticles.slice(1).map((article, index) => (
+                  {filteredArticles.map((article, index) => (
                     <motion.div
                       key={article.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                      transition={{ duration: 0.5, delay: 0.1 + index * 0.1 }}
                       className="bg-white rounded-3xl shadow-sm overflow-hidden border border-[#D291BC]/10 hover:shadow-md transition-all"
                     >
                       {/* Article Image */}
-                      <div className="aspect-video bg-gradient-to-br from-[#FFE3EC] to-[#D291BC]/20 flex items-center justify-center relative">
-                        <IconHeartbeat className="w-12 h-12 text-[#D291BC]" />
+                      <div className="aspect-video bg-gradient-to-br from-[#FFE3EC] to-[#D291BC]/20 relative overflow-hidden">
+                        <Image
+                          src={article.image}
+                          alt={article.title}
+                          fill
+                          className="object-cover"
+                          onError={(e: any) => {
+                            // Fallback to default styling if image fails to load
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
                         <button
                           onClick={() => toggleBookmark(article.id)}
-                          className={`absolute top-3 right-3 p-2 rounded-full transition-all ${
+                          className={`absolute top-3 right-3 p-2 rounded-full transition-all z-10 ${
                             bookmarkedArticles.includes(article.id)
                               ? "bg-[#D291BC] text-white"
                               : "bg-white/80 text-gray-600 hover:bg-white"
@@ -413,15 +407,11 @@ export default function JournalPage() {
                               {article.readTime}
                             </div>
                             <div className="flex items-center gap-1">
-                              <IconEye className="w-3 h-3" />
-                              {article.views}
+                              <span className="text-gray-400">•</span>
+                              <span>{article.author}</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <button className="flex items-center gap-1 hover:text-red-500 transition-colors">
-                              <IconHeart className="w-3 h-3" />
-                              {article.likes}
-                            </button>
                             <button className="hover:text-[#D291BC] transition-colors">
                               <IconShare className="w-3 h-3" />
                             </button>
