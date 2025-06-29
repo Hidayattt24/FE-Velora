@@ -123,6 +123,7 @@ export default function JournalPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [bookmarkedArticles, setBookmarkedArticles] = useState<string[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [displayCount, setDisplayCount] = useState(7);
   const { notifySuccess, notifyInfo } = useVeloraNotification();
 
   useEffect(() => {
@@ -133,6 +134,11 @@ export default function JournalPage() {
       setBookmarkedArticles(JSON.parse(saved));
     }
   }, []);
+
+  // Reset display count when category or search changes
+  useEffect(() => {
+    setDisplayCount(7);
+  }, [selectedCategory, searchTerm]);
 
   const toggleBookmark = (articleId: string) => {
     const updatedBookmarks = bookmarkedArticles.includes(articleId)
@@ -168,6 +174,15 @@ export default function JournalPage() {
       );
     return matchesCategory && matchesSearch;
   });
+
+  // Get articles to display based on displayCount
+  const articlesToShow = filteredArticles.slice(0, displayCount);
+  const hasMoreArticles = filteredArticles.length > displayCount;
+
+  const loadMoreArticles = () => {
+    setDisplayCount((prev) => prev + 6); // Load 6 more articles
+    notifyInfo("Memuat artikel tambahan...", 2000);
+  };
 
   // Empty state component with interactive SVG
   const EmptyState = ({ category }: { category: string }) => (
@@ -339,6 +354,43 @@ export default function JournalPage() {
                     </button>
                   ))}
                 </div>
+
+                {/* Mobile: Saved Articles Link - Below Categories */}
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <Link href="/main/journal/saved">
+                    <div className="cursor-pointer hover:bg-gray-50 p-2.5 rounded-xl transition-colors">
+                      <div className="flex items-center gap-2.5">
+                        <div className="bg-[#FFE3EC] p-1.5 rounded-lg">
+                          <IconBookmark className="w-3.5 h-3.5 text-[#D291BC]" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-sm font-semibold text-gray-800">
+                            Artikel Tersimpan
+                          </h3>
+                          <p className="text-xs text-gray-600">
+                            {mounted ? bookmarkedArticles.length : 0} artikel
+                            disimpan
+                          </p>
+                        </div>
+                        <div className="text-[#D291BC]">
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
               </div>
 
               {/* Desktop: Vertical categories */}
@@ -378,10 +430,10 @@ export default function JournalPage() {
                   <div className="cursor-pointer hover:bg-gray-50 p-3 rounded-2xl transition-colors">
                     <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
                       <IconBookmark className="w-5 h-5 text-[#D291BC]" />
-                      Artikel Tersimpan
+                      Jurnal Tersimpan
                     </h3>
                     <p className="text-sm text-gray-600">
-                      {mounted ? bookmarkedArticles.length : 0} artikel disimpan
+                      {mounted ? bookmarkedArticles.length : 0} jurnal disimpan
                     </p>
                   </div>
                 </Link>
@@ -397,7 +449,7 @@ export default function JournalPage() {
               <>
                 {/* Articles Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredArticles.map((article, index) => (
+                  {articlesToShow.map((article, index) => (
                     <motion.div
                       key={article.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -487,65 +539,36 @@ export default function JournalPage() {
                 </div>
 
                 {/* Load More Button */}
-                {filteredArticles.length > 6 && (
+                {hasMoreArticles && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
                     className="text-center"
                   >
-                    <button className="bg-white border border-[#D291BC] text-[#D291BC] px-8 py-3 rounded-2xl font-medium hover:bg-[#D291BC] hover:text-white transition-all">
-                      Muat Lebih Banyak
-                    </button>
+                    <motion.button
+                      onClick={loadMoreArticles}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="bg-white border border-[#D291BC] text-[#D291BC] px-8 py-3 rounded-2xl font-medium hover:bg-[#D291BC] hover:text-white transition-all shadow-sm"
+                    >
+                      Muat Lebih Banyak (
+                      {filteredArticles.length - displayCount} jurnal lagi)
+                    </motion.button>
                   </motion.div>
                 )}
+
+                {/* Show total articles info */}
+                <div className="text-center">
+                  <p className="text-sm text-gray-500">
+                    Menampilkan {articlesToShow.length} dari{" "}
+                    {filteredArticles.length} jurnal
+                  </p>
+                </div>
               </>
             )}
           </div>
         </div>
-
-        {/* Mobile: Saved Articles Link */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="lg:hidden mt-6"
-        >
-          <Link href="/main/journal/saved">
-            <div className="bg-white rounded-3xl shadow-sm p-4 border border-[#D291BC]/10 hover:shadow-md transition-all">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="bg-[#FFE3EC] p-2.5 rounded-xl">
-                    <IconBookmark className="w-5 h-5 text-[#D291BC]" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800">
-                      Artikel Tersimpan
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {mounted ? bookmarkedArticles.length : 0} artikel disimpan
-                    </p>
-                  </div>
-                </div>
-                <div className="text-[#D291BC]">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </motion.div>
       </div>
     </div>
   );
