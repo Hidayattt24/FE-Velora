@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { 
+import {
   IconLayoutDashboard,
   IconStars,
   IconMessageCircle2,
@@ -11,7 +11,7 @@ import {
   IconHome,
   IconUser,
   IconMessage,
-  IconLogout
+  IconLogout,
 } from "@tabler/icons-react";
 import {
   motion,
@@ -80,9 +80,12 @@ const authNavigationItems = [
 ];
 
 // Fungsi untuk smooth scroll
-const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+const scrollToSection = (
+  e: React.MouseEvent<HTMLAnchorElement>,
+  href: string
+) => {
   // Jika bukan link internal (#), biarkan default behavior
-  if (!href.startsWith('#')) return;
+  if (!href.startsWith("#")) return;
 
   e.preventDefault();
   const element = document.querySelector(href);
@@ -93,7 +96,7 @@ const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) =
 
     window.scrollTo({
       top: offsetPosition,
-      behavior: "smooth"
+      behavior: "smooth",
     });
   }
 };
@@ -122,20 +125,20 @@ function IconContainer({
 
   let width = useSpring(widthSync, {
     mass: 0.1,
-    stiffness: 150,
-    damping: 12,
+    stiffness: 400,
+    damping: 30,
   });
-  
+
   let height = useSpring(heightSync, {
     mass: 0.1,
-    stiffness: 150,
-    damping: 12,
+    stiffness: 400,
+    damping: 30,
   });
 
   let scale = useSpring(scaleSync, {
     mass: 0.1,
-    stiffness: 150,
-    damping: 12,
+    stiffness: 400,
+    damping: 30,
   });
 
   const [hovered, setHovered] = useState(false);
@@ -147,7 +150,7 @@ function IconContainer({
         style={{ width, height, scale }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="relative flex items-center justify-center rounded-full bg-white/90 shadow-sm hover:bg-[#FFE3EC] hover:shadow-md transition-all duration-300"
+        className="relative flex items-center justify-center rounded-full bg-white/90 shadow-sm hover:bg-[#FFE3EC] hover:shadow-md transition-all duration-150"
       >
         <AnimatePresence>
           {hovered && (
@@ -155,10 +158,11 @@ function IconContainer({
               initial={{ opacity: 0, y: 8, x: "-50%" }}
               animate={{ opacity: 1, y: 0, x: "-50%" }}
               exit={{ opacity: 0, y: 2, x: "-50%" }}
-              transition={{ 
+              transition={{
                 type: "spring",
-                stiffness: 200,
-                damping: 20
+                stiffness: 500,
+                damping: 30,
+                duration: 0.15,
               }}
               className="absolute -bottom-8 left-1/2 whitespace-pre rounded-md border border-[#FFE3EC] bg-white/95 px-2 py-0.5 text-xs text-[#D291BC] shadow-sm backdrop-blur-sm"
             >
@@ -166,9 +170,7 @@ function IconContainer({
             </motion.span>
           )}
         </AnimatePresence>
-        <motion.div
-          className="flex h-5 w-5 items-center justify-center transition-transform duration-300 hover:scale-110"
-        >
+        <motion.div className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center transition-transform duration-100 hover:scale-110">
           {icon}
         </motion.div>
       </motion.div>
@@ -176,32 +178,37 @@ function IconContainer({
   );
 }
 
-function MobileNav({ items = defaultNavigationItems }: { items?: typeof defaultNavigationItems }) {
+function MobileNav({
+  items = defaultNavigationItems,
+}: {
+  items?: typeof defaultNavigationItems;
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
       {/* Logo */}
-      <div className="block md:hidden">
+      <div className="block md:hidden px-4 pt-4">
         <Image
           src="/landing/logowithname.svg"
           alt="Velora Logo"
           width={110}
           height={66}
-          className="h-[42px] w-auto"
+          className="h-[36px] sm:h-[42px] w-auto"
           priority
         />
       </div>
 
       {/* Menu Button and Dropdown */}
-      <div className="fixed bottom-6 right-6 block md:hidden">
+      <div className="fixed bottom-4 right-4 block md:hidden z-50">
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-full right-0 mb-2 flex flex-col gap-2"
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+              transition={{ duration: 0.15, ease: "easeInOut" }}
+              className="absolute bottom-full right-0 mb-3 flex flex-col gap-2"
             >
               {items.map((item, idx) => (
                 <motion.a
@@ -214,10 +221,10 @@ function MobileNav({ items = defaultNavigationItems }: { items?: typeof defaultN
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white/95 shadow-lg hover:bg-[#FFE3EC] hover:shadow-md transition-all duration-300"
+                  transition={{ delay: idx * 0.03, duration: 0.15 }}
+                  className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/95 shadow-lg hover:bg-[#FFE3EC] hover:shadow-md transition-all duration-150 touch-manipulation"
                 >
-                  <span className="h-5 w-5">{item.icon}</span>
+                  <span className="h-4 w-4 sm:h-5 sm:w-5">{item.icon}</span>
                 </motion.a>
               ))}
             </motion.div>
@@ -226,34 +233,40 @@ function MobileNav({ items = defaultNavigationItems }: { items?: typeof defaultN
 
         <motion.button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-white/95 shadow-lg hover:bg-[#FFE3EC] hover:shadow-md transition-all duration-300"
+          className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-white/95 shadow-lg hover:bg-[#FFE3EC] hover:shadow-md transition-all duration-150 touch-manipulation"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          transition={{ duration: 0.1 }}
         >
-          <IconLayoutNavbarCollapse className="h-6 w-6 text-[#D291BC]" />
+          <IconLayoutNavbarCollapse className="h-5 w-5 sm:h-6 sm:w-6 text-[#D291BC]" />
         </motion.button>
       </div>
     </>
   );
 }
 
-function DesktopNav({ items = defaultNavigationItems }: { items?: typeof defaultNavigationItems }) {
+function DesktopNav({
+  items = defaultNavigationItems,
+}: {
+  items?: typeof defaultNavigationItems;
+}) {
   const mouseX = useMotionValue(Infinity);
 
   return (
     <motion.nav
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
-      className="hidden md:flex items-center justify-center rounded-full bg-white/95 px-4 py-2 shadow-lg backdrop-blur-sm w-fit mx-auto"
+      className="hidden md:flex items-center justify-center rounded-full bg-white/95 px-3 py-2 lg:px-4 shadow-lg backdrop-blur-sm w-fit mx-auto"
     >
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-2 sm:gap-3 lg:gap-6">
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ 
+          transition={{
             type: "spring",
-            stiffness: 200,
-            damping: 20
+            stiffness: 500,
+            damping: 30,
+            duration: 0.2,
           }}
         >
           <Image
@@ -261,17 +274,13 @@ function DesktopNav({ items = defaultNavigationItems }: { items?: typeof default
             alt="Velora Logo"
             width={110}
             height={66}
-            className="h-[42px] w-auto transition-transform duration-300 hover:scale-105"
+            className="h-[32px] md:h-[36px] lg:h-[42px] w-auto transition-transform duration-150 hover:scale-105"
             priority
           />
         </motion.div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1 sm:gap-2 lg:gap-4">
           {items.map((item) => (
-            <IconContainer
-              key={item.href}
-              mouseX={mouseX}
-              {...item}
-            />
+            <IconContainer key={item.href} mouseX={mouseX} {...item} />
           ))}
         </div>
       </div>
@@ -308,11 +317,7 @@ function AuthNav() {
             className="flex items-center gap-4"
           >
             {authNavigationItems.map((item) => (
-              <IconContainer
-                key={item.href}
-                mouseX={mouseX}
-                {...item}
-              />
+              <IconContainer key={item.href} mouseX={mouseX} {...item} />
             ))}
           </motion.div>
         </div>
@@ -321,7 +326,11 @@ function AuthNav() {
   );
 }
 
-export function Navbar({ items = defaultNavigationItems }: { items?: typeof defaultNavigationItems }) {
+export function Navbar({
+  items = defaultNavigationItems,
+}: {
+  items?: typeof defaultNavigationItems;
+}) {
   return (
     <header className="fixed top-4 left-0 right-0 z-50 px-4">
       <MobileNav items={items} />

@@ -168,12 +168,17 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-center justify-start">
-              <label className="flex items-center gap-2">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 rounded border-[#D291BC] text-[#D291BC] focus:ring-[#D291BC]"
+                  className="w-4 h-4 rounded border-2 border-[#D291BC]/40 text-[#D291BC] bg-white focus:ring-2 focus:ring-[#D291BC]/20 focus:border-[#D291BC] checked:bg-[#D291BC] checked:border-[#D291BC] hover:border-[#D291BC] transition-all duration-200"
+                  style={{
+                    accentColor: "#D291BC",
+                  }}
                 />
-                <span className="text-sm text-gray-600">Ingat saya</span>
+                <span className="text-sm text-gray-600 select-none">
+                  Ingat saya
+                </span>
               </label>
             </div>
 
