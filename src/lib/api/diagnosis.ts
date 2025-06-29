@@ -233,12 +233,55 @@ class DiagnosisService {
       const result = await response.json();
 
       if (!response.ok) {
+        // Return default empty stats instead of throwing error
+        if (response.status === 500) {
+          return {
+            success: true,
+            data: {
+              total_predictions: 0,
+              risk_level_counts: {
+                "low risk": 0,
+                "mid risk": 0,
+                "high risk": 0,
+              },
+              recent_predictions: 0,
+              latest_prediction: null,
+              trends: {
+                last_30_days: 0,
+                dominant_risk_level: "low risk",
+              },
+            },
+          };
+        }
         throw new Error(result.message || "Gagal mengambil statistik diagnosa");
       }
 
       return result;
     } catch (error) {
       console.error("Get diagnosis stats error:", error);
+      // Return default empty stats instead of throwing error for network issues
+      if (
+        error instanceof TypeError ||
+        (error instanceof Error && error.message.includes("fetch"))
+      ) {
+        return {
+          success: true,
+          data: {
+            total_predictions: 0,
+            risk_level_counts: {
+              "low risk": 0,
+              "mid risk": 0,
+              "high risk": 0,
+            },
+            recent_predictions: 0,
+            latest_prediction: null,
+            trends: {
+              last_30_days: 0,
+              dominant_risk_level: "low risk",
+            },
+          },
+        };
+      }
       throw error;
     }
   }
