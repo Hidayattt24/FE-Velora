@@ -17,6 +17,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { galleryApi } from "@/lib/api/gallery";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/heic"];
@@ -102,8 +103,14 @@ export default function UploadPage() {
     setError(null);
 
     try {
-      // Simulasi upload delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const uploadData = {
+        image: formData.file,
+        title: formData.title.trim(),
+        description: formData.notes.trim() || undefined,
+        pregnancy_week: selectedWeek,
+      };
+
+      await galleryApi.uploadPhoto(uploadData);
       setSuccess(true);
 
       // Tunggu animasi sukses selesai, lalu navigasi ke gallery
@@ -111,7 +118,12 @@ export default function UploadPage() {
         router.push("/main/gallery");
       }, 1000);
     } catch (err) {
-      setError("Gagal mengunggah foto. Silakan coba lagi.");
+      console.error("Upload error:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Gagal mengunggah foto. Silakan coba lagi."
+      );
     } finally {
       setIsLoading(false);
     }

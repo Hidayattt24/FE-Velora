@@ -13,48 +13,24 @@ import {
   IconPhoto,
   IconCamera,
   IconSparkles,
+  IconLoader,
+  IconRefresh,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useOutsideClick } from "@/lib/hooks/use-outside-click";
 import { cn } from "@/lib/utils";
 import { ProfileHeader } from "@/components/ui/profile-header";
+import { galleryApi, Photo } from "@/lib/api/gallery";
 
-// Dummy data for demonstration
-const photos = [
-  {
-    id: 1,
-    title: "Minggu ke-12",
-    week: 12,
-    date: "12 Maret 2024",
-    imageUrl: "/main/gallery/gallery.jpg",
-    notes: "Pertama kali merasakan gerakan bayi!",
-  },
-  {
-    id: 2,
-    title: "Minggu ke-16",
-    week: 16,
-    date: "9 April 2024",
-    imageUrl: "/main/gallery/gallery.jpg",
-    notes: "Baby bump mulai terlihat",
-  },
-  {
-    id: 3,
-    title: "Minggu ke-20",
-    week: 20,
-    date: "7 Mei 2024",
-    imageUrl: "/main/gallery/gallery.jpg",
-    notes: "USG menunjukkan jenis kelamin bayi",
-  },
-  {
-    id: 4,
-    title: "Minggu ke-24",
-    week: 24,
-    date: "4 Juni 2024",
-    imageUrl: "/main/gallery/gallery.jpg",
-    notes: "Perut semakin membesar",
-  },
-];
+interface PhotoDisplay {
+  id: string;
+  title: string;
+  week: number;
+  date: string;
+  imageUrl: string;
+  notes: string;
+}
 
 const weekRanges = [
   { label: "Trimester 1", range: [1, 12] },
@@ -266,19 +242,97 @@ function BackToTopButton() {
 }
 
 export default function GalleryPage() {
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
   const [selectedTrimester, setSelectedTrimester] = useState<number | null>(
     null
   );
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
     null
   );
+  const [photos, setPhotos] = useState<PhotoDisplay[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useOutsideClick(cardRef, () => {
     setSelectedId(null);
   });
+
+  // Function to convert backend Photo to PhotoDisplay
+  const convertToPhotoDisplay = (photo: Photo): PhotoDisplay => {
+    const createdDate = new Date(photo.created_at);
+    const formattedDate = createdDate.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    // Convert relative image URL to full URL
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const imageUrl = photo.image_url.startsWith('http') 
+      ? photo.image_url 
+      : `${API_BASE_URL}${photo.image_url}`;
+
+    return {
+      id: photo.id,
+      title: photo.title || `Minggu ke-${photo.pregnancy_week || 'Unknown'}`,
+      week: photo.pregnancy_week || 0,
+      date: formattedDate,
+      imageUrl: imageUrl,
+      notes: photo.description || 'Tidak ada catatan',
+    };
+  };
+
+  // Fetch photos from backend
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await galleryApi.getPhotos();
+        
+        if (response.success && response.data.photos) {
+          const convertedPhotos = response.data.photos.map(convertToPhotoDisplay);
+          setPhotos(convertedPhotos);
+        } else {
+          setPhotos([]);
+        }
+      } catch (err) {
+        console.error('Error fetching photos:', err);
+        setError(err instanceof Error ? err.message : 'Gagal memuat foto');
+        setPhotos([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPhotos();
+  }, []);
+
+  // Listen for page visibility changes to refresh when user comes back from upload
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Refetch photos when page becomes visible
+        const fetchPhotos = async () => {
+          try {
+            const response = await galleryApi.getPhotos();
+            if (response.success && response.data.photos) {
+              const convertedPhotos = response.data.photos.map(convertToPhotoDisplay);
+              setPhotos(convertedPhotos);
+            }
+          } catch (err) {
+            console.error('Error refreshing photos:', err);
+          }
+        };
+        fetchPhotos();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   const filteredPhotos = selectedWeek
     ? photos.filter((photo) => photo.week === selectedWeek)
@@ -291,21 +345,47 @@ export default function GalleryPage() {
       })
     : photos;
 
-  const handleDelete = (photoId: number, e: React.MouseEvent) => {
+  const handleDelete = (photoId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setShowDeleteConfirm(photoId);
   };
 
-  const confirmDelete = (photoId: number, e: React.MouseEvent) => {
+  const confirmDelete = async (photoId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    // Here you would typically make an API call to delete the photo
-    alert(`Foto berhasil dihapus!`);
-    setShowDeleteConfirm(null);
+    try {
+      await galleryApi.deletePhoto(photoId);
+      // Remove photo from local state
+      setPhotos(prev => prev.filter(photo => photo.id !== photoId));
+      setShowDeleteConfirm(null);
+    } catch (err) {
+      console.error('Error deleting photo:', err);
+      alert('Gagal menghapus foto. Silakan coba lagi.');
+    }
   };
 
   const cancelDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowDeleteConfirm(null);
+  };
+
+  const handleRefresh = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await galleryApi.getPhotos();
+      
+      if (response.success && response.data.photos) {
+        const convertedPhotos = response.data.photos.map(convertToPhotoDisplay);
+        setPhotos(convertedPhotos);
+      } else {
+        setPhotos([]);
+      }
+    } catch (err) {
+      console.error('Error refreshing photos:', err);
+      setError(err instanceof Error ? err.message : 'Gagal memuat foto');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -348,8 +428,16 @@ export default function GalleryPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="hidden md:block"
+            className="hidden md:flex items-center justify-center gap-3"
           >
+            <button
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="inline-flex items-center gap-2 bg-white text-[#D291BC] border border-[#D291BC] px-4 py-2 rounded-xl hover:bg-[#FFE3EC]/10 transition-all duration-200 transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <IconRefresh className={cn("w-4 h-4", isLoading && "animate-spin")} />
+              <span>Refresh</span>
+            </button>
             <Link
               href="/main/gallery/upload"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-[#D291BC] to-[#c17ba6] text-white px-6 py-3 rounded-2xl hover:shadow-lg hover:shadow-[#D291BC]/25 transition-all duration-200 transform hover:scale-105 font-medium"
@@ -433,9 +521,41 @@ export default function GalleryPage() {
         </div>
 
         {/* Gallery Grid - Optimized for mobile */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6">
-          <AnimatePresence>
-            {filteredPhotos.map((photo) => (
+        {isLoading ? (
+          <div className="text-center py-12">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center gap-4"
+            >
+              <IconLoader className="w-8 h-8 text-[#D291BC] animate-spin" />
+              <p className="text-[#D291BC]/70">Memuat foto...</p>
+            </motion.div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center gap-4"
+            >
+              <div className="p-4 bg-red-100 rounded-full">
+                <IconX className="w-8 h-8 text-red-500" />
+              </div>
+              <p className="text-red-600 font-medium">Gagal memuat foto</p>
+              <p className="text-gray-500 text-sm">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-2 px-4 py-2 bg-[#D291BC] text-white rounded-lg hover:bg-[#c17ba6] transition-colors"
+              >
+                Coba Lagi
+              </button>
+            </motion.div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6">
+            <AnimatePresence>
+              {filteredPhotos.map((photo) => (
               <motion.div
                 key={photo.id}
                 ref={selectedId === photo.id ? cardRef : null}
@@ -565,9 +685,10 @@ export default function GalleryPage() {
                   )}
                 </motion.div>
               </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
 
         {/* Back to Top Button */}
         <BackToTopButton />
@@ -601,7 +722,7 @@ export default function GalleryPage() {
         )}
 
         {/* Empty State - Now with illustration */}
-        {filteredPhotos.length === 0 && (
+        {!isLoading && !error && filteredPhotos.length === 0 && (
           <div className="text-center py-8 sm:py-12">
             <EmptyStateIllustration />
             <motion.p

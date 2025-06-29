@@ -23,10 +23,10 @@ export interface GetPhotosResponse {
   data: {
     photos: Photo[];
     pagination: {
-      page: number;
-      limit: number;
-      total: number;
+      currentPage: number;
       totalPages: number;
+      totalItems: number;
+      itemsPerPage: number;
     };
   };
 }
@@ -64,13 +64,16 @@ export const galleryApi = {
     if (params.limit) queryParams.append("limit", params.limit.toString());
     if (params.week) queryParams.append("week", params.week.toString());
 
-    const response = await fetch(`${API_BASE_URL}/api/gallery?${queryParams}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/api/gallery/photos?${queryParams}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     const result = await response.json();
 
@@ -91,7 +94,7 @@ export const galleryApi = {
     if (data.pregnancy_week)
       formData.append("pregnancy_week", data.pregnancy_week.toString());
 
-    const response = await fetch(`${API_BASE_URL}/api/gallery`, {
+    const response = await fetch(`${API_BASE_URL}/api/gallery/upload`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -111,13 +114,16 @@ export const galleryApi = {
   deletePhoto: async (photoId: string): Promise<ApiResponse> => {
     const token = getAuthToken();
 
-    const response = await fetch(`${API_BASE_URL}/api/gallery/${photoId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/api/gallery/photos/${photoId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     const result = await response.json();
 
@@ -133,13 +139,16 @@ export const galleryApi = {
   ): Promise<{ success: boolean; data: { photo: Photo } }> => {
     const token = getAuthToken();
 
-    const response = await fetch(`${API_BASE_URL}/api/gallery/${photoId}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/api/gallery/photos/${photoId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     const result = await response.json();
 
