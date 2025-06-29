@@ -280,7 +280,7 @@ export default function GalleryPage() {
 
     // Convert relative image URL to full URL
     const API_BASE_URL =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      process.env.NEXT_PUBLIC_API_URL || "https://api-velora.vercel.app";
     const imageUrl = photo.image_url.startsWith("http")
       ? photo.image_url
       : `${API_BASE_URL}${photo.image_url}`;

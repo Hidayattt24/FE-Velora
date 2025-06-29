@@ -30,6 +30,18 @@ const nextConfig: NextConfig = {
         hostname: "*.railway.app",
         pathname: "/uploads/**",
       },
+      // Supabase Storage
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+      // Specific Supabase project (for better security)
+      {
+        protocol: "https",
+        hostname: "baisblpccyajqfasyicx.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
     ],
   },
 };

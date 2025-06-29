@@ -101,7 +101,7 @@ export default function ProfilePage() {
       }
       // If it's a relative path, prepend the API base URL
       const API_BASE_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        process.env.NEXT_PUBLIC_API_URL || "https://api-velora.vercel.app";
       return `${API_BASE_URL}${userProfile.profile_picture}`;
     }
     // Fallback to default image

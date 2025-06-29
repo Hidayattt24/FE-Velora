@@ -25,7 +25,7 @@ export function ProfileHeader() {
     if (user) {
       loadProfile();
     }
-  }, [user]); // This will reload when user context changes (like after photo upload)
+  }, [user, user?.profile_picture]); // This will reload when user context or profile_picture changes
 
   const getProfileImageUrl = () => {
     // Prioritize user context profile_picture (updated after photo upload)
