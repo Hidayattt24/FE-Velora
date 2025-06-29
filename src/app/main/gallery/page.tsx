@@ -262,25 +262,26 @@ export default function GalleryPage() {
   // Function to convert backend Photo to PhotoDisplay
   const convertToPhotoDisplay = (photo: Photo): PhotoDisplay => {
     const createdDate = new Date(photo.created_at);
-    const formattedDate = createdDate.toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
+    const formattedDate = createdDate.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
 
     // Convert relative image URL to full URL
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-    const imageUrl = photo.image_url.startsWith('http') 
-      ? photo.image_url 
+    const API_BASE_URL =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const imageUrl = photo.image_url.startsWith("http")
+      ? photo.image_url
       : `${API_BASE_URL}${photo.image_url}`;
 
     return {
       id: photo.id,
-      title: photo.title || `Minggu ke-${photo.pregnancy_week || 'Unknown'}`,
+      title: photo.title || `Minggu ke-${photo.pregnancy_week || "Unknown"}`,
       week: photo.pregnancy_week || 0,
       date: formattedDate,
       imageUrl: imageUrl,
-      notes: photo.description || 'Tidak ada catatan',
+      notes: photo.description || "Tidak ada catatan",
     };
   };
 
@@ -291,16 +292,18 @@ export default function GalleryPage() {
         setIsLoading(true);
         setError(null);
         const response = await galleryApi.getPhotos();
-        
+
         if (response.success && response.data.photos) {
-          const convertedPhotos = response.data.photos.map(convertToPhotoDisplay);
+          const convertedPhotos = response.data.photos.map(
+            convertToPhotoDisplay
+          );
           setPhotos(convertedPhotos);
         } else {
           setPhotos([]);
         }
       } catch (err) {
-        console.error('Error fetching photos:', err);
-        setError(err instanceof Error ? err.message : 'Gagal memuat foto');
+        console.error("Error fetching photos:", err);
+        setError(err instanceof Error ? err.message : "Gagal memuat foto");
         setPhotos([]);
       } finally {
         setIsLoading(false);
@@ -313,25 +316,28 @@ export default function GalleryPage() {
   // Listen for page visibility changes to refresh when user comes back from upload
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === "visible") {
         // Refetch photos when page becomes visible
         const fetchPhotos = async () => {
           try {
             const response = await galleryApi.getPhotos();
             if (response.success && response.data.photos) {
-              const convertedPhotos = response.data.photos.map(convertToPhotoDisplay);
+              const convertedPhotos = response.data.photos.map(
+                convertToPhotoDisplay
+              );
               setPhotos(convertedPhotos);
             }
           } catch (err) {
-            console.error('Error refreshing photos:', err);
+            console.error("Error refreshing photos:", err);
           }
         };
         fetchPhotos();
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
 
   const filteredPhotos = selectedWeek
@@ -355,11 +361,11 @@ export default function GalleryPage() {
     try {
       await galleryApi.deletePhoto(photoId);
       // Remove photo from local state
-      setPhotos(prev => prev.filter(photo => photo.id !== photoId));
+      setPhotos((prev) => prev.filter((photo) => photo.id !== photoId));
       setShowDeleteConfirm(null);
     } catch (err) {
-      console.error('Error deleting photo:', err);
-      alert('Gagal menghapus foto. Silakan coba lagi.');
+      console.error("Error deleting photo:", err);
+      alert("Gagal menghapus foto. Silakan coba lagi.");
     }
   };
 
@@ -373,7 +379,7 @@ export default function GalleryPage() {
       setIsLoading(true);
       setError(null);
       const response = await galleryApi.getPhotos();
-      
+
       if (response.success && response.data.photos) {
         const convertedPhotos = response.data.photos.map(convertToPhotoDisplay);
         setPhotos(convertedPhotos);
@@ -381,8 +387,8 @@ export default function GalleryPage() {
         setPhotos([]);
       }
     } catch (err) {
-      console.error('Error refreshing photos:', err);
-      setError(err instanceof Error ? err.message : 'Gagal memuat foto');
+      console.error("Error refreshing photos:", err);
+      setError(err instanceof Error ? err.message : "Gagal memuat foto");
     } finally {
       setIsLoading(false);
     }
@@ -435,7 +441,9 @@ export default function GalleryPage() {
               disabled={isLoading}
               className="inline-flex items-center gap-2 bg-white text-[#D291BC] border border-[#D291BC] px-4 py-2 rounded-xl hover:bg-[#FFE3EC]/10 transition-all duration-200 transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <IconRefresh className={cn("w-4 h-4", isLoading && "animate-spin")} />
+              <IconRefresh
+                className={cn("w-4 h-4", isLoading && "animate-spin")}
+              />
               <span>Refresh</span>
             </button>
             <Link
@@ -556,135 +564,137 @@ export default function GalleryPage() {
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6">
             <AnimatePresence>
               {filteredPhotos.map((photo) => (
-              <motion.div
-                key={photo.id}
-                ref={selectedId === photo.id ? cardRef : null}
-                layoutId={`card-${photo.id}`}
-                onClick={() => setSelectedId(photo.id)}
-                className={cn(
-                  "bg-white rounded-2xl sm:rounded-3xl shadow-lg overflow-hidden cursor-pointer group",
-                  selectedId === photo.id
-                    ? "fixed inset-0 sm:inset-4 z-50 m-auto max-w-4xl h-fit"
-                    : "relative"
-                )}
-                initial={
-                  selectedId === photo.id
-                    ? { opacity: 0, scale: 0.8 }
-                    : undefined
-                }
-                animate={
-                  selectedId === photo.id ? { opacity: 1, scale: 1 } : undefined
-                }
-                exit={
-                  selectedId === photo.id
-                    ? { opacity: 0, scale: 0.8 }
-                    : undefined
-                }
-                transition={{ duration: 0.3 }}
-              >
-                <div
-                  className={cn(
-                    "relative",
-                    selectedId === photo.id
-                      ? "aspect-video"
-                      : "aspect-square sm:aspect-[4/3]"
-                  )}
-                >
-                  <img
-                    src={photo.imageUrl}
-                    alt={photo.title}
-                    className="w-full h-full object-cover"
-                  />
-                  {selectedId === photo.id ? (
-                    <motion.button
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedId(null);
-                      }}
-                      className="absolute top-2 sm:top-4 right-2 sm:right-4 p-2 bg-black/20 hover:bg-black/40 rounded-full text-white backdrop-blur-sm transition-colors"
-                    >
-                      <IconX className="w-5 h-5 sm:w-6 sm:h-6" />
-                    </motion.button>
-                  ) : (
-                    <div className="absolute top-2 right-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                      {showDeleteConfirm === photo.id ? (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="flex items-center gap-1"
-                        >
-                          <button
-                            onClick={(e) => confirmDelete(photo.id, e)}
-                            className="p-1.5 sm:p-2 bg-red-500 hover:bg-red-600 rounded-full text-white backdrop-blur-sm transition-colors shadow-lg"
-                          >
-                            <IconCheck className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </button>
-                          <button
-                            onClick={cancelDelete}
-                            className="p-1.5 sm:p-2 bg-gray-500 hover:bg-gray-600 rounded-full text-white backdrop-blur-sm transition-colors shadow-lg"
-                          >
-                            <IconX className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </button>
-                        </motion.div>
-                      ) : (
-                        <motion.button
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          onClick={(e) => handleDelete(photo.id, e)}
-                          className="p-1.5 sm:p-2 bg-red-500/80 hover:bg-red-500 rounded-full text-white backdrop-blur-sm transition-colors shadow-lg"
-                        >
-                          <IconTrash className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </motion.button>
-                      )}
-                    </div>
-                  )}
-                </div>
                 <motion.div
+                  key={photo.id}
+                  ref={selectedId === photo.id ? cardRef : null}
+                  layoutId={`card-${photo.id}`}
+                  onClick={() => setSelectedId(photo.id)}
                   className={cn(
-                    "p-2 sm:p-3 md:p-6",
+                    "bg-white rounded-2xl sm:rounded-3xl shadow-lg overflow-hidden cursor-pointer group",
                     selectedId === photo.id
-                      ? "space-y-4"
-                      : "space-y-1 sm:space-y-2"
+                      ? "fixed inset-0 sm:inset-4 z-50 m-auto max-w-4xl h-fit"
+                      : "relative"
                   )}
+                  initial={
+                    selectedId === photo.id
+                      ? { opacity: 0, scale: 0.8 }
+                      : undefined
+                  }
+                  animate={
+                    selectedId === photo.id
+                      ? { opacity: 1, scale: 1 }
+                      : undefined
+                  }
+                  exit={
+                    selectedId === photo.id
+                      ? { opacity: 0, scale: 0.8 }
+                      : undefined
+                  }
+                  transition={{ duration: 0.3 }}
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-                    <h3 className="text-sm sm:text-base md:text-lg font-semibold text-[#D291BC] line-clamp-1">
-                      {photo.title}
-                    </h3>
-                    <div className="flex items-center text-gray-500 text-xs sm:text-sm">
-                      <IconCalendarEvent className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                      <span className="text-xs sm:text-sm">{photo.date}</span>
-                    </div>
-                  </div>
-
-                  {selectedId === photo.id && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 20 }}
-                      className="space-y-3 sm:space-y-4"
-                    >
-                      <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                        {photo.notes}
-                      </p>
-                      <div className="flex justify-end">
-                        <button
-                          onClick={() =>
-                            handleDownload(photo.imageUrl, photo.title)
-                          }
-                          className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-[#D291BC] hover:text-[#c17ba6] transition-colors bg-[#FFE3EC]/50 hover:bg-[#FFE3EC] px-3 py-2 rounded-full"
-                        >
-                          <IconDownload className="w-4 h-4 sm:w-5 sm:h-5" />
-                          <span>Unduh Foto</span>
-                        </button>
+                  <div
+                    className={cn(
+                      "relative",
+                      selectedId === photo.id
+                        ? "aspect-video"
+                        : "aspect-square sm:aspect-[4/3]"
+                    )}
+                  >
+                    <img
+                      src={photo.imageUrl}
+                      alt={photo.title}
+                      className="w-full h-full object-cover"
+                    />
+                    {selectedId === photo.id ? (
+                      <motion.button
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedId(null);
+                        }}
+                        className="absolute top-2 sm:top-4 right-2 sm:right-4 p-2 bg-black/20 hover:bg-black/40 rounded-full text-white backdrop-blur-sm transition-colors"
+                      >
+                        <IconX className="w-5 h-5 sm:w-6 sm:h-6" />
+                      </motion.button>
+                    ) : (
+                      <div className="absolute top-2 right-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        {showDeleteConfirm === photo.id ? (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="flex items-center gap-1"
+                          >
+                            <button
+                              onClick={(e) => confirmDelete(photo.id, e)}
+                              className="p-1.5 sm:p-2 bg-red-500 hover:bg-red-600 rounded-full text-white backdrop-blur-sm transition-colors shadow-lg"
+                            >
+                              <IconCheck className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </button>
+                            <button
+                              onClick={cancelDelete}
+                              className="p-1.5 sm:p-2 bg-gray-500 hover:bg-gray-600 rounded-full text-white backdrop-blur-sm transition-colors shadow-lg"
+                            >
+                              <IconX className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </button>
+                          </motion.div>
+                        ) : (
+                          <motion.button
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            onClick={(e) => handleDelete(photo.id, e)}
+                            className="p-1.5 sm:p-2 bg-red-500/80 hover:bg-red-500 rounded-full text-white backdrop-blur-sm transition-colors shadow-lg"
+                          >
+                            <IconTrash className="w-3 h-3 sm:w-4 sm:h-4" />
+                          </motion.button>
+                        )}
                       </div>
-                    </motion.div>
-                  )}
+                    )}
+                  </div>
+                  <motion.div
+                    className={cn(
+                      "p-2 sm:p-3 md:p-6",
+                      selectedId === photo.id
+                        ? "space-y-4"
+                        : "space-y-1 sm:space-y-2"
+                    )}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
+                      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-[#D291BC] line-clamp-1">
+                        {photo.title}
+                      </h3>
+                      <div className="flex items-center text-gray-500 text-xs sm:text-sm">
+                        <IconCalendarEvent className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                        <span className="text-xs sm:text-sm">{photo.date}</span>
+                      </div>
+                    </div>
+
+                    {selectedId === photo.id && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        className="space-y-3 sm:space-y-4"
+                      >
+                        <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                          {photo.notes}
+                        </p>
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() =>
+                              handleDownload(photo.imageUrl, photo.title)
+                            }
+                            className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-[#D291BC] hover:text-[#c17ba6] transition-colors bg-[#FFE3EC]/50 hover:bg-[#FFE3EC] px-3 py-2 rounded-full"
+                          >
+                            <IconDownload className="w-4 h-4 sm:w-5 sm:h-5" />
+                            <span>Unduh Foto</span>
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </motion.div>
                 </motion.div>
-              </motion.div>
               ))}
             </AnimatePresence>
           </div>
