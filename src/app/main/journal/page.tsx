@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import {
   IconBookmark,
   IconClock,
-  IconShare,
   IconFilter,
   IconStar,
   IconBabyCarriage,
@@ -20,6 +19,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { ProfileHeader } from "@/components/ui/profile-header";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
+import { useVeloraNotification } from "@/lib/hooks/useVeloraNotification";
 import {
   trendingArticles,
   breakingNews,
@@ -123,6 +123,7 @@ export default function JournalPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [bookmarkedArticles, setBookmarkedArticles] = useState<string[]>([]);
   const [mounted, setMounted] = useState(false);
+  const { notifySuccess, notifyInfo } = useVeloraNotification();
 
   useEffect(() => {
     setMounted(true);
@@ -143,6 +144,17 @@ export default function JournalPage() {
       "bookmarkedArticles",
       JSON.stringify(updatedBookmarks)
     );
+
+    // Show notification
+    const isBookmarked = updatedBookmarks.includes(articleId);
+    const article = articles.find((a) => a.id === articleId);
+    const articleTitle = article?.title || "Artikel";
+
+    if (isBookmarked) {
+      notifySuccess(`${articleTitle} ditambahkan ke bookmark! 🔖`, 3000);
+    } else {
+      notifyInfo(`${articleTitle} dihapus dari bookmark`, 2000);
+    }
   };
 
   const filteredArticles = articles.filter((article) => {
@@ -193,7 +205,6 @@ export default function JournalPage() {
           </motion.div>
         </div>
       </motion.div>
-
       <motion.h3
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -202,7 +213,6 @@ export default function JournalPage() {
       >
         Belum Ada Artikel di Kategori "{category}"
       </motion.h3>
-
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -211,15 +221,17 @@ export default function JournalPage() {
       >
         Kami sedang menyiapkan konten terbaru untuk kategori ini. Coba
         eksplorasi kategori lain atau kembali lagi nanti!
-      </motion.p>
-
+      </motion.p>{" "}
       <motion.button
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onClick={() => setSelectedCategory("Semua")}
+        onClick={() => {
+          setSelectedCategory("Semua");
+          notifyInfo("Menampilkan semua artikel", 2000);
+        }}
         className="mt-6 bg-gradient-to-r from-[#D291BC] to-pink-400 text-white px-6 py-3 rounded-2xl font-medium hover:shadow-lg transition-all"
       >
         Lihat Semua Artikel

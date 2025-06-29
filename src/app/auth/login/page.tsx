@@ -8,6 +8,7 @@ import { AuthInput } from "@/components/ui/auth-input";
 import { AuthButton } from "@/components/ui/auth-button";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useVeloraNotification } from "@/lib/hooks/useVeloraNotification";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,18 +19,28 @@ export default function LoginPage() {
     password: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const {
+    notifyLoginSuccess,
+    notifyAuthError,
+    notifyValidationError,
+    showLoading,
+    hideLoading,
+  } = useVeloraNotification();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.email) {
       newErrors.email = "Email harus diisi";
+      notifyValidationError("Email");
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Format email tidak valid";
+      notifyValidationError("Format email");
     }
 
     if (!formData.password) {
       newErrors.password = "Password harus diisi";
+      notifyValidationError("Password");
     }
 
     setErrors(newErrors);
@@ -44,13 +55,21 @@ export default function LoginPage() {
     setIsLoading(true);
     setErrors({});
 
+    const loadingToast = showLoading("Sedang masuk ke akun Anda...");
+
     try {
       await login(formData.email, formData.password);
+      hideLoading(loadingToast);
+      notifyLoginSuccess();
       router.push("/main/gallery"); // Redirect to gallery after successful login
     } catch (error: any) {
+      hideLoading(loadingToast);
       console.error("Login error:", error);
+      const errorMessage =
+        error.message || "Terjadi kesalahan. Silakan coba lagi.";
+      notifyAuthError(errorMessage);
       setErrors({
-        general: error.message || "Terjadi kesalahan. Silakan coba lagi.",
+        general: errorMessage,
       });
     } finally {
       setIsLoading(false);

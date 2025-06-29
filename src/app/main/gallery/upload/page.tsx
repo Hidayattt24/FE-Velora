@@ -2,11 +2,9 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  IconUpload,
   IconX,
   IconPhoto,
   IconCheck,
-  IconCamera,
   IconCloudUpload,
   IconSparkles,
   IconHeart,
@@ -18,6 +16,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { galleryApi } from "@/lib/api/gallery";
+import { useVeloraNotification } from "@/lib/hooks/useVeloraNotification";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/heic"];
@@ -30,6 +29,7 @@ const weekRanges = [
 
 export default function UploadPage() {
   const router = useRouter();
+  const { notifyUploadSuccess, notifyFormError } = useVeloraNotification();
   const [dragActive, setDragActive] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
@@ -113,17 +113,23 @@ export default function UploadPage() {
       await galleryApi.uploadPhoto(uploadData);
       setSuccess(true);
 
+      // Show success notification
+      notifyUploadSuccess("Foto");
+
       // Tunggu animasi sukses selesai, lalu navigasi ke gallery
       setTimeout(() => {
         router.push("/main/gallery");
       }, 1000);
     } catch (err) {
       console.error("Upload error:", err);
-      setError(
+      const errorMessage =
         err instanceof Error
           ? err.message
-          : "Gagal mengunggah foto. Silakan coba lagi."
-      );
+          : "Gagal mengunggah foto. Silakan coba lagi.";
+      setError(errorMessage);
+
+      // Show error notification
+      notifyFormError("mengunggah foto", errorMessage);
     } finally {
       setIsLoading(false);
     }

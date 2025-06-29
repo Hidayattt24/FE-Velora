@@ -2,27 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  timelineService,
-  TimelineEntry,
-  ApiResponse,
-} from "@/lib/api/timeline";
+import { timelineService, TimelineEntry } from "@/lib/api/timeline";
 import { useRouter } from "next/navigation";
 import {
   IconAlertTriangle,
   IconX,
   IconCheck,
-  IconCalendarEvent,
   IconNotes,
   IconStethoscope,
   IconHeartbeat,
   IconAlertCircle,
   IconArrowUp,
   IconChevronDown,
-  IconCircleCheck,
 } from "@tabler/icons-react";
 import { ProfileHeader } from "@/components/ui/profile-header";
 import { StatefulButton } from "@/components/aceternity/stateful-button";
+import { useVeloraNotification } from "@/lib/hooks/useVeloraNotification";
 
 // Health services tracking interface
 interface HealthService {
@@ -231,6 +226,7 @@ const getWeeksInTrimester = (trimester: number): number[] => {
 
 export default function TimelinePage() {
   const router = useRouter();
+  const { notifyFormSuccess, notifyFormError } = useVeloraNotification();
 
   // State for selected trimester (1, 2, or 3)
   const [selectedTrimester, setSelectedTrimester] = useState<number>(1);
@@ -439,8 +435,8 @@ export default function TimelinePage() {
           },
         }));
 
-        // Show success message
-        alert("Catatan minggu " + selectedWeek + " berhasil disimpan!");
+        // Show success notification
+        notifyFormSuccess(`Jurnal minggu ke-${selectedWeek}`);
       } else {
         throw new Error(response.message || "Gagal menyimpan data");
       }
@@ -451,7 +447,12 @@ export default function TimelinePage() {
           ? error.message
           : "Gagal menyimpan data timeline";
       setLoadingState((prev) => ({ ...prev, error: errorMessage }));
-      alert("Error: " + errorMessage);
+
+      // Show error notification
+      notifyFormError(
+        `menyimpan jurnal minggu ke-${selectedWeek}`,
+        errorMessage
+      );
     } finally {
       setLoadingState((prev) => ({ ...prev, saving: false }));
     }

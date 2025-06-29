@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/contexts/AuthContext";
+import { ToastProvider } from "@/lib/context/ToastContext";
+import { VeloraToaster } from "@/components/ui/VeloraToaster";
 
 export const metadata: Metadata = {
   title: "Velora",
@@ -15,7 +17,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            {children}
+            <VeloraToaster />
+          </AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );

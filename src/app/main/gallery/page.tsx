@@ -8,7 +8,6 @@ import {
   IconDownload,
   IconArrowUp,
   IconTrash,
-  IconClock,
   IconCheck,
   IconPhoto,
   IconCamera,
@@ -22,6 +21,7 @@ import { useOutsideClick } from "@/lib/hooks/use-outside-click";
 import { cn } from "@/lib/utils";
 import { ProfileHeader } from "@/components/ui/profile-header";
 import { galleryApi, Photo } from "@/lib/api/gallery";
+import { useVeloraNotification } from "@/lib/hooks/useVeloraNotification";
 
 interface PhotoDisplay {
   id: string;
@@ -255,6 +255,16 @@ export default function GalleryPage() {
   const [error, setError] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
+  const {
+    notifyGalleryAction,
+    notifyDataError,
+    showLoading,
+    hideLoading,
+    notifyDeleteConfirm,
+    notifySuccess,
+    notifyError,
+  } = useVeloraNotification();
+
   useOutsideClick(cardRef, () => {
     setSelectedId(null);
   });
@@ -303,7 +313,10 @@ export default function GalleryPage() {
         }
       } catch (err) {
         console.error("Error fetching photos:", err);
-        setError(err instanceof Error ? err.message : "Gagal memuat foto");
+        const errorMessage =
+          err instanceof Error ? err.message : "Gagal memuat foto";
+        setError(errorMessage);
+        notifyDataError("memuat galeri foto");
         setPhotos([]);
       } finally {
         setIsLoading(false);
@@ -311,7 +324,7 @@ export default function GalleryPage() {
     };
 
     fetchPhotos();
-  }, []);
+  }, []); // Remove notifyDataError from dependencies
 
   // Listen for page visibility changes to refresh when user comes back from upload
   useEffect(() => {
@@ -353,19 +366,25 @@ export default function GalleryPage() {
 
   const handleDelete = (photoId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    notifyDeleteConfirm("foto");
     setShowDeleteConfirm(photoId);
   };
 
   const confirmDelete = async (photoId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    const loadingToast = showLoading("Menghapus foto...");
+
     try {
       await galleryApi.deletePhoto(photoId);
       // Remove photo from local state
       setPhotos((prev) => prev.filter((photo) => photo.id !== photoId));
       setShowDeleteConfirm(null);
+      hideLoading(loadingToast);
+      notifyGalleryAction("delete", true);
     } catch (err) {
+      hideLoading(loadingToast);
       console.error("Error deleting photo:", err);
-      alert("Gagal menghapus foto. Silakan coba lagi.");
+      notifyGalleryAction("delete", false);
     }
   };
 
@@ -375,6 +394,8 @@ export default function GalleryPage() {
   };
 
   const handleRefresh = async () => {
+    const loadingToast = showLoading("Memperbarui galeri...");
+
     try {
       setIsLoading(true);
       setError(null);
@@ -383,12 +404,18 @@ export default function GalleryPage() {
       if (response.success && response.data.photos) {
         const convertedPhotos = response.data.photos.map(convertToPhotoDisplay);
         setPhotos(convertedPhotos);
+        hideLoading(loadingToast);
+        notifySuccess("Galeri berhasil diperbarui! 🔄", 2000);
       } else {
         setPhotos([]);
+        hideLoading(loadingToast);
+        notifyError("Tidak ada foto ditemukan");
       }
     } catch (err) {
+      hideLoading(loadingToast);
       console.error("Error refreshing photos:", err);
-      setError(err instanceof Error ? err.message : "Gagal memuat foto");
+      setError(err instanceof Error ? err.message : "Gagal memperbarui foto");
+      notifyDataError("memperbarui galeri");
     } finally {
       setIsLoading(false);
     }

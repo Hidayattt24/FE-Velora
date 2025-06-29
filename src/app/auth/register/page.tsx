@@ -8,6 +8,7 @@ import { AuthInput } from "@/components/ui/auth-input";
 import { AuthButton } from "@/components/ui/auth-button";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useVeloraNotification } from "@/lib/hooks/useVeloraNotification";
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,9 +21,17 @@ export default function RegisterPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState("");
-  
+
   const { register } = useAuth();
   const router = useRouter();
+  const {
+    notifyFormSuccess,
+    notifyAuthError,
+    notifyValidationError,
+    showLoading,
+    hideLoading,
+    notifySuccess,
+  } = useVeloraNotification();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -35,7 +44,9 @@ export default function RegisterPage() {
 
     if (!formData.phone.trim()) {
       newErrors.phone = "Nomor HP harus diisi";
-    } else if (!/^(\+62|62|0)8[1-9][0-9]{6,9}$/.test(formData.phone.replace(/\s/g, ""))) {
+    } else if (
+      !/^(\+62|62|0)8[1-9][0-9]{6,9}$/.test(formData.phone.replace(/\s/g, ""))
+    ) {
       newErrors.phone = "Format nomor HP tidak valid";
     }
 
@@ -50,7 +61,8 @@ export default function RegisterPage() {
     } else if (formData.password.length < 8) {
       newErrors.password = "Password minimal 8 karakter";
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = "Password harus mengandung huruf besar, huruf kecil, dan angka";
+      newErrors.password =
+        "Password harus mengandung huruf besar, huruf kecil, dan angka";
     }
 
     if (!formData.confirmPassword) {
@@ -65,12 +77,14 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsLoading(true);
     setErrors({});
     setSuccessMessage("");
+
+    const loadingToast = showLoading("Sedang membuat akun Anda...");
 
     try {
       await register(
@@ -80,18 +94,28 @@ export default function RegisterPage() {
         formData.password,
         formData.confirmPassword
       );
-      
-      setSuccessMessage("Registrasi berhasil! Silakan login untuk melanjutkan.");
-      
+
+      hideLoading(loadingToast);
+      notifySuccess(
+        "Registrasi berhasil! Silakan login untuk melanjutkan. 🎉",
+        4000
+      );
+      setSuccessMessage(
+        "Registrasi berhasil! Silakan login untuk melanjutkan."
+      );
+
       // Redirect to login after 2 seconds
       setTimeout(() => {
-        router.push('/auth/login');
+        router.push("/auth/login");
       }, 2000);
-      
     } catch (error: any) {
-      console.error('Registration error:', error);
+      hideLoading(loadingToast);
+      console.error("Registration error:", error);
+      const errorMessage =
+        error.message || "Registrasi gagal. Silakan coba lagi.";
+      notifyAuthError(errorMessage);
       setErrors({
-        general: error.message || 'Registrasi gagal. Silakan coba lagi.',
+        general: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -237,7 +261,8 @@ export default function RegisterPage() {
                 value={formData.confirmPassword}
                 onChange={(e) => {
                   setFormData({ ...formData, confirmPassword: e.target.value });
-                  if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: "" });
+                  if (errors.confirmPassword)
+                    setErrors({ ...errors, confirmPassword: "" });
                 }}
                 error={errors.confirmPassword}
                 showPasswordToggle
