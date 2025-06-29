@@ -16,8 +16,10 @@ export interface LoginData {
 export interface User {
   id: string;
   fullName: string;
+  username?: string;
   email: string;
   phone: string;
+  profile_picture?: string | null;
 }
 
 export interface AuthResponse {

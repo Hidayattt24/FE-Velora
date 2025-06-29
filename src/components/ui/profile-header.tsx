@@ -2,9 +2,49 @@
 
 import { IconClock } from "@tabler/icons-react";
 import { useAuth } from "@/lib/contexts/AuthContext";
+import { useState, useEffect } from "react";
+import { profileService, type UserProfile } from "@/lib/api/profile";
+import Image from "next/image";
 
 export function ProfileHeader() {
   const { user, isLoading } = useAuth();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const response = await profileService.getProfile();
+        if (response.success && response.data) {
+          setUserProfile(response.data.user);
+        }
+      } catch (error) {
+        console.error("Error loading profile in header:", error);
+      }
+    };
+
+    if (user) {
+      loadProfile();
+    }
+  }, [user]); // This will reload when user context changes (like after photo upload)
+
+  const getProfileImageUrl = () => {
+    // Prioritize user context profile_picture (updated after photo upload)
+    const profilePicture =
+      user?.profile_picture || userProfile?.profile_picture;
+
+    if (profilePicture) {
+      // If it's a full URL, use it as is
+      if (profilePicture.startsWith("http")) {
+        return profilePicture;
+      }
+      // If it's a relative path, prepend the API base URL
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      return `${API_BASE_URL}${profilePicture}`;
+    }
+    // Fallback to default image
+    return "/main/gallery/photo-profile.jpg";
+  };
 
   // Format current date and time
   const now = new Date();
@@ -19,10 +59,13 @@ export function ProfileHeader() {
   });
 
   // Get first name from full name
-  const firstName = user?.fullName?.split(" ")[0] || "Mom";
+  const firstName =
+    userProfile?.full_name?.split(" ")[0] ||
+    user?.fullName?.split(" ")[0] ||
+    "Mom";
 
-  // Use email instead of username
-  const userEmail = user?.email || "user@example.com";
+  // Use email from profile or auth context
+  const userEmail = userProfile?.email || user?.email || "user@example.com";
 
   return (
     <div className="relative mb-4">
@@ -30,9 +73,11 @@ export function ProfileHeader() {
       <div className="sm:hidden px-4">
         <div className="flex items-center justify-between mb-4">
           <div className="w-16 h-16 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-            <img
-              src="/main/gallery/photo-profile.jpg"
+            <Image
+              src={getProfileImageUrl()}
               alt="Profile"
+              width={64}
+              height={64}
               className="w-full h-full object-cover"
             />
           </div>
@@ -56,9 +101,11 @@ export function ProfileHeader() {
       <div className="hidden sm:flex items-center justify-between w-full px-6">
         <div className="flex items-center gap-6">
           <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-all hover:scale-105">
-            <img
-              src="/main/gallery/photo-profile.jpg"
+            <Image
+              src={getProfileImageUrl()}
               alt="Profile"
+              width={96}
+              height={96}
               className="w-full h-full object-cover"
             />
           </div>

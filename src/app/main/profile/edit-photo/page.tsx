@@ -1,23 +1,119 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { IconCamera, IconArrowLeft, IconUpload } from "@tabler/icons-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { profileService } from "@/lib/api/profile";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function EditPhotoPage() {
-  const [photo, setPhoto] = useState("/main/gallery/photo-profile.jpg");
+  const { user, updateUser } = useAuth();
+  const router = useRouter();
+  const [currentPhoto, setCurrentPhoto] = useState(
+    "/main/gallery/photo-profile.jpg"
+  );
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const response = await profileService.getProfile();
+        if (response.success && response.data) {
+          const profile = response.data.user;
+          if (profile.profile_picture) {
+            // If it's a full URL, use it as is
+            if (profile.profile_picture.startsWith("http")) {
+              setCurrentPhoto(profile.profile_picture);
+            } else {
+              // If it's a relative path, prepend the API base URL
+              const API_BASE_URL =
+                process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+              setCurrentPhoto(`${API_BASE_URL}${profile.profile_picture}`);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        toast.error("Gagal memuat profil");
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    if (user) {
+      loadProfile();
+    }
+  }, [user]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        toast.error("Harap pilih file gambar yang valid");
+        return;
+      }
+
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Ukuran file tidak boleh lebih dari 5MB");
+        return;
+      }
+
+      setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
     }
   };
+
+  const handleSavePhoto = async () => {
+    if (!selectedFile) {
+      toast.error("Harap pilih foto terlebih dahulu");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await profileService.uploadProfilePicture(selectedFile);
+
+      if (response.success && response.data) {
+        // Update user context
+        updateUser({
+          profile_picture: response.data.user.profile_picture,
+        });
+
+        toast.success("Foto profil berhasil diperbarui");
+        router.push("/main/profile");
+      }
+    } catch (error) {
+      console.error("Upload photo error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Gagal mengupload foto"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoadingProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-white via-[#FFE3EC]/20 to-[#D291BC]/5 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-[#D291BC] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-[#D291BC]">Memuat profil...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-[#FFE3EC]/20 to-[#D291BC]/5 flex items-center justify-center px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
@@ -56,7 +152,7 @@ export default function EditPhotoPage() {
                   className="rounded-2xl overflow-hidden shadow-xl border-4 border-white/30"
                 >
                   <Image
-                    src={previewUrl || photo}
+                    src={previewUrl || currentPhoto}
                     alt="Profile"
                     width={200}
                     height={200}
@@ -78,6 +174,7 @@ export default function EditPhotoPage() {
                   ref={fileInputRef}
                   onChange={handlePhotoChange}
                   className="hidden"
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -108,9 +205,11 @@ export default function EditPhotoPage() {
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.98 }}
                   type="button"
-                  className="flex-1 py-2.5 lg:py-3 px-3 lg:px-4 rounded-xl bg-gradient-to-r from-[#D291BC] to-pink-400 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 text-sm lg:text-base"
+                  onClick={handleSavePhoto}
+                  disabled={isLoading || !selectedFile}
+                  className="flex-1 py-2.5 lg:py-3 px-3 lg:px-4 rounded-xl bg-gradient-to-r from-[#D291BC] to-pink-400 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Save Photo
+                  {isLoading ? "Menyimpan..." : "Save Photo"}
                 </motion.button>
               </div>
             </div>

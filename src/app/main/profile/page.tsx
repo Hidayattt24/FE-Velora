@@ -8,24 +8,48 @@ import {
   IconMail,
   IconLogout,
   IconCamera,
+  IconTrash,
+  IconEye,
+  IconEyeOff,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import { profileService, type UserProfile } from "@/lib/api/profile";
+import toast from "react-hot-toast";
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const [userProfile] = useState({
-    photo: "/main/gallery/photo-profile.jpg",
-    fullName: user?.fullName || "Sarah Johnson",
-    username: "sarahmommy",
-    email: user?.email || "sarah@email.com",
-  });
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const response = await profileService.getProfile();
+        if (response.success && response.data) {
+          setUserProfile(response.data.user);
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        toast.error("Gagal memuat profil");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (user) {
+      loadProfile();
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -36,10 +60,64 @@ export default function ProfilePage() {
       router.push("/auth/login");
     } catch (error) {
       console.error("Logout error:", error);
+      toast.error("Gagal logout");
     } finally {
       setIsLoggingOut(false);
     }
   };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) {
+      toast.error("Password diperlukan untuk menghapus akun");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await profileService.deleteAccount(deletePassword);
+
+      if (response.success) {
+        toast.success("Akun berhasil dihapus");
+        logout(); // This will also show logout notification
+        router.push("/auth/login");
+      }
+    } catch (error) {
+      console.error("Delete account error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Gagal menghapus akun"
+      );
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+      setDeletePassword("");
+    }
+  };
+
+  const getProfileImageUrl = () => {
+    if (userProfile?.profile_picture) {
+      // If it's a full URL, use it as is
+      if (userProfile.profile_picture.startsWith("http")) {
+        return userProfile.profile_picture;
+      }
+      // If it's a relative path, prepend the API base URL
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      return `${API_BASE_URL}${userProfile.profile_picture}`;
+    }
+    // Fallback to default image
+    return "/main/gallery/photo-profile.jpg";
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-white via-[#FFE3EC]/20 to-[#D291BC]/5 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-[#D291BC] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-[#D291BC]">Memuat profil...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-[#FFE3EC]/20 to-[#D291BC]/5 flex items-center justify-center px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
@@ -55,7 +133,7 @@ export default function ProfilePage() {
             <div className="relative group mb-6">
               <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl overflow-hidden transition-transform duration-300 group-hover:scale-105 shadow-lg">
                 <Image
-                  src={userProfile.photo}
+                  src={getProfileImageUrl()}
                   alt="Profile"
                   width={128}
                   height={128}
@@ -74,13 +152,10 @@ export default function ProfilePage() {
             </div>
             <div className="w-full">
               <h2 className="text-xl lg:text-2xl font-bold text-[#D291BC] mb-2">
-                {userProfile.fullName}
+                {userProfile?.full_name || user?.fullName || "User"}
               </h2>
-              <p className="text-[#D291BC]/70 text-sm lg:text-base font-medium mb-2">
-                @{userProfile.username}
-              </p>
               <p className="text-[#D291BC]/60 text-sm lg:text-base">
-                {userProfile.email}
+                {userProfile?.email || user?.email || "email@example.com"}
               </p>
             </div>
           </div>
@@ -125,8 +200,92 @@ export default function ProfilePage() {
               {isLoggingOut ? "Logging out..." : "Logout"}
             </span>
           </motion.button>
+
+          {/* Delete Account Button */}
+          <motion.button
+            onClick={() => setShowDeleteModal(true)}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full py-4 lg:py-5 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-2xl flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transition-all duration-300 mt-4"
+          >
+            <IconTrash className="w-5 h-5" />
+            <span className="text-base lg:text-lg">Delete Account</span>
+          </motion.button>
         </div>
       </motion.div>
+
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
+          >
+            <div className="text-center mb-6">
+              <div className="bg-red-100 rounded-full p-3 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <IconTrash className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Delete Account
+              </h3>
+              <p className="text-gray-600 text-sm">
+                This action cannot be undone. All your data will be permanently
+                deleted.
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-gray-700 text-sm font-semibold mb-3">
+                Enter your password to confirm
+              </label>
+              <div className="relative">
+                <input
+                  type={showDeletePassword ? "text" : "password"}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all text-gray-700 bg-gray-50 placeholder-gray-400 pr-12"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  placeholder="Enter your password"
+                  disabled={isDeleting}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowDeletePassword(!showDeletePassword)}
+                  disabled={isDeleting}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-all duration-200 disabled:opacity-50"
+                >
+                  {showDeletePassword ? (
+                    <IconEyeOff className="w-4 h-4" />
+                  ) : (
+                    <IconEye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeletePassword("");
+                }}
+                disabled={isDeleting}
+                className="flex-1 py-3 px-4 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-all duration-200 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeleting || !deletePassword.trim()}
+                className="flex-1 py-3 px-4 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeleting ? "Deleting..." : "Delete Account"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
