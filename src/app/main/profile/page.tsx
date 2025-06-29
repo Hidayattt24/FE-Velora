@@ -26,6 +26,7 @@ export default function ProfilePage() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
   const [showDeletePassword, setShowDeletePassword] = useState(false);
@@ -56,14 +57,19 @@ export default function ProfilePage() {
 
     setIsLoggingOut(true);
     try {
-      logout();
+      await logout();
       router.push("/auth/login");
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Gagal logout");
     } finally {
       setIsLoggingOut(false);
+      setShowLogoutModal(false);
     }
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutModal(true);
   };
 
   const handleDeleteAccount = async () => {
@@ -189,16 +195,14 @@ export default function ProfilePage() {
 
           {/* Logout Button */}
           <motion.button
-            onClick={handleLogout}
+            onClick={confirmLogout}
             disabled={isLoggingOut}
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             className="w-full py-4 lg:py-5 bg-gradient-to-r from-[#D291BC] to-pink-400 text-white font-semibold rounded-2xl flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transition-all duration-300 mt-8"
           >
             <IconLogout className="w-5 h-5" />
-            <span className="text-base lg:text-lg">
-              {isLoggingOut ? "Logging out..." : "Logout"}
-            </span>
+            <span className="text-base lg:text-lg">Logout</span>
           </motion.button>
 
           {/* Delete Account Button */}
@@ -213,6 +217,48 @@ export default function ProfilePage() {
           </motion.button>
         </div>
       </motion.div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
+          >
+            <div className="text-center mb-6">
+              <div className="bg-[#FFE3EC] rounded-full p-3 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <IconLogout className="w-8 h-8 text-[#D291BC]" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Konfirmasi Logout
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Apakah Anda yakin ingin keluar dari akun? Anda perlu login
+                kembali untuk mengakses aplikasi.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                disabled={isLoggingOut}
+                className="flex-1 py-3 px-4 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-all duration-200 disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[#D291BC] to-pink-400 text-white font-semibold hover:from-[#C280AB] hover:to-pink-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoggingOut ? "Logging out..." : "Ya, Logout"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Delete Account Modal */}
       {showDeleteModal && (

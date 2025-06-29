@@ -17,7 +17,7 @@ interface AuthContextType {
     password: string,
     confirmPassword: string
   ) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
 }
 
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
     setToken(null);
     localStorage.removeItem("auth_token");
@@ -112,6 +112,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Show success notification
     toast.success("Anda telah berhasil logout");
+
+    // Small delay to ensure state is updated
+    await new Promise((resolve) => setTimeout(resolve, 50));
   };
 
   const updateUser = (userData: Partial<User>) => {
