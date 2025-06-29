@@ -1,12 +1,13 @@
 "use client";
 
 import { Navbar } from "@/components/Navbar";
-import { 
+import { PublicRoute } from "@/components/auth/ProtectedRoute";
+import {
   IconHome,
   IconUser,
   IconMessage,
   IconPhone,
-  IconLogout
+  IconLogout,
 } from "@tabler/icons-react";
 
 const authNavigationItems = [
@@ -37,15 +38,19 @@ const authNavigationItems = [
   },
 ];
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div className="min-h-screen bg-[#FFF5F7]">
-      <Navbar items={authNavigationItems} />
-      <main className="pt-16 pb-24 md:pb-8">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          {children}
-        </div>
-      </main>
-    </div>
+    <PublicRoute>
+      <div className="min-h-screen bg-[#FFF5F7]">
+        <Navbar items={authNavigationItems} />
+        <main className="pt-16 pb-24 md:pb-8">
+          <div className="max-w-7xl mx-auto px-4 py-8">{children}</div>
+        </main>
+      </div>
+    </PublicRoute>
   );
-} 
+}

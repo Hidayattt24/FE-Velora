@@ -2,26 +2,59 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { AuthCard } from "@/components/ui/auth-card";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/contexts/AuthContext";
 import { AuthInput } from "@/components/ui/auth-input";
 import { AuthButton } from "@/components/ui/auth-button";
 import Image from "next/image";
 import { motion } from "framer-motion";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    nama: "",
+    email: "",
     password: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.email) {
+      newErrors.email = "Email harus diisi";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Format email tidak valid";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password harus diisi";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateForm()) return;
+
     setIsLoading(true);
-    // Simulasi loading
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
+    setErrors({});
+
+    try {
+      await login(formData.email, formData.password);
+      router.push("/main/gallery"); // Redirect to gallery after successful login
+    } catch (error: any) {
+      console.error("Login error:", error);
+      setErrors({
+        general: error.message || "Terjadi kesalahan. Silakan coba lagi.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -71,16 +104,30 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {errors.general && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm"
+              >
+                {errors.general}
+              </motion.div>
+            )}
+
             <div className="space-y-4">
               <AuthInput
-                label="Nama Ibu"
-                id="nama"
-                name="nama"
-                placeholder="Masukkan nama lengkap Anda"
-                value={formData.nama}
-                onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-                error={errors.nama}
-                autoComplete="name"
+                label="Email"
+                id="email"
+                name="email"
+                type="email"
+                placeholder="Masukkan email Anda"
+                value={formData.email}
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  if (errors.email) setErrors({ ...errors, email: "" });
+                }}
+                error={errors.email}
+                autoComplete="email"
                 required
               />
 
@@ -90,7 +137,10 @@ export default function LoginPage() {
                 name="password"
                 placeholder="Masukkan kata sandi Anda"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, password: e.target.value });
+                  if (errors.password) setErrors({ ...errors, password: "" });
+                }}
                 error={errors.password}
                 showPasswordToggle
                 autoComplete="current-password"
@@ -98,7 +148,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-start">
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -106,13 +156,6 @@ export default function LoginPage() {
                 />
                 <span className="text-sm text-gray-600">Ingat saya</span>
               </label>
-
-              <Link
-                href="/auth/forgot-password"
-                className="text-sm font-medium text-[#D291BC] hover:text-[#c17ba6] transition-colors"
-              >
-                Lupa kata sandi?
-              </Link>
             </div>
 
             <div className="space-y-4">

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/contexts/AuthContext";
 import { AuthInput } from "@/components/ui/auth-input";
 import { AuthButton } from "@/components/ui/auth-button";
 import Image from "next/image";
@@ -17,13 +19,83 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = useState("");
+  
+  const { register } = useAuth();
+  const router = useRouter();
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Nama lengkap harus diisi";
+    } else if (formData.fullName.trim().length < 2) {
+      newErrors.fullName = "Nama lengkap minimal 2 karakter";
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Nomor HP harus diisi";
+    } else if (!/^(\+62|62|0)8[1-9][0-9]{6,9}$/.test(formData.phone.replace(/\s/g, ""))) {
+      newErrors.phone = "Format nomor HP tidak valid";
+    }
+
+    if (!formData.email) {
+      newErrors.email = "Email harus diisi";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Format email tidak valid";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password harus diisi";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Password minimal 8 karakter";
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password = "Password harus mengandung huruf besar, huruf kecil, dan angka";
+    }
+
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Konfirmasi password harus diisi";
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Konfirmasi password tidak cocok";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+
     setIsLoading(true);
-    // Simulasi loading
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
+    setErrors({});
+    setSuccessMessage("");
+
+    try {
+      await register(
+        formData.fullName.trim(),
+        formData.phone.replace(/\s/g, ""),
+        formData.email,
+        formData.password,
+        formData.confirmPassword
+      );
+      
+      setSuccessMessage("Registrasi berhasil! Silakan login untuk melanjutkan.");
+      
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        router.push('/auth/login');
+      }, 2000);
+      
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      setErrors({
+        general: error.message || 'Registrasi gagal. Silakan coba lagi.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -73,6 +145,26 @@ export default function RegisterPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {successMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-600 text-sm"
+              >
+                {successMessage}
+              </motion.div>
+            )}
+
+            {errors.general && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm"
+              >
+                {errors.general}
+              </motion.div>
+            )}
+
             <div className="space-y-4">
               <AuthInput
                 label="Nama Lengkap Ibu"
@@ -80,7 +172,10 @@ export default function RegisterPage() {
                 name="fullName"
                 placeholder="Masukkan nama lengkap Anda"
                 value={formData.fullName}
-                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, fullName: e.target.value });
+                  if (errors.fullName) setErrors({ ...errors, fullName: "" });
+                }}
                 error={errors.fullName}
                 autoComplete="name"
                 required
@@ -93,7 +188,10 @@ export default function RegisterPage() {
                 type="tel"
                 placeholder="Contoh: 08123456789"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, phone: e.target.value });
+                  if (errors.phone) setErrors({ ...errors, phone: "" });
+                }}
                 error={errors.phone}
                 autoComplete="tel"
                 required
@@ -106,7 +204,10 @@ export default function RegisterPage() {
                 type="email"
                 placeholder="Masukkan email Anda"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  if (errors.email) setErrors({ ...errors, email: "" });
+                }}
                 error={errors.email}
                 autoComplete="email"
                 required
@@ -116,9 +217,12 @@ export default function RegisterPage() {
                 label="Kata Sandi"
                 id="password"
                 name="password"
-                placeholder="Minimal 8 karakter"
+                placeholder="Minimal 8 karakter, harus mengandung huruf besar, kecil, dan angka"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, password: e.target.value });
+                  if (errors.password) setErrors({ ...errors, password: "" });
+                }}
                 error={errors.password}
                 showPasswordToggle
                 autoComplete="new-password"
@@ -131,7 +235,10 @@ export default function RegisterPage() {
                 name="confirmPassword"
                 placeholder="Masukkan ulang kata sandi"
                 value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, confirmPassword: e.target.value });
+                  if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: "" });
+                }}
                 error={errors.confirmPassword}
                 showPasswordToggle
                 autoComplete="new-password"

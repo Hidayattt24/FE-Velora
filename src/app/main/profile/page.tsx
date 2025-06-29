@@ -12,14 +12,34 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
-  const [user] = useState({
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const [userProfile] = useState({
     photo: "/main/gallery/photo-profile.jpg",
-    fullName: "Sarah Johnson",
+    fullName: user?.fullName || "Sarah Johnson",
     username: "sarahmommy",
-    email: "sarah@email.com",
+    email: user?.email || "sarah@email.com",
   });
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+    try {
+      logout();
+      router.push("/auth/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-[#FFE3EC]/20 to-[#D291BC]/5 flex items-center justify-center px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
@@ -35,7 +55,7 @@ export default function ProfilePage() {
             <div className="relative group mb-6">
               <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl overflow-hidden transition-transform duration-300 group-hover:scale-105 shadow-lg">
                 <Image
-                  src={user.photo}
+                  src={userProfile.photo}
                   alt="Profile"
                   width={128}
                   height={128}
@@ -54,13 +74,13 @@ export default function ProfilePage() {
             </div>
             <div className="w-full">
               <h2 className="text-xl lg:text-2xl font-bold text-[#D291BC] mb-2">
-                {user.fullName}
+                {userProfile.fullName}
               </h2>
               <p className="text-[#D291BC]/70 text-sm lg:text-base font-medium mb-2">
-                @{user.username}
+                @{userProfile.username}
               </p>
               <p className="text-[#D291BC]/60 text-sm lg:text-base">
-                {user.email}
+                {userProfile.email}
               </p>
             </div>
           </div>
@@ -94,12 +114,16 @@ export default function ProfilePage() {
 
           {/* Logout Button */}
           <motion.button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             className="w-full py-4 lg:py-5 bg-gradient-to-r from-[#D291BC] to-pink-400 text-white font-semibold rounded-2xl flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transition-all duration-300 mt-8"
           >
             <IconLogout className="w-5 h-5" />
-            <span className="text-base lg:text-lg">Logout</span>
+            <span className="text-base lg:text-lg">
+              {isLoggingOut ? "Logging out..." : "Logout"}
+            </span>
           </motion.button>
         </div>
       </motion.div>
