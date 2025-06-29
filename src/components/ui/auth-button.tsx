@@ -1,9 +1,13 @@
 import { motion } from "motion/react";
 
-interface AuthButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface AuthButtonProps {
   children: React.ReactNode;
   variant?: "primary" | "secondary";
   isLoading?: boolean;
+  className?: string;
+  onClick?: () => void;
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
 }
 
 export function AuthButton({ 
@@ -17,6 +21,7 @@ export function AuthButton({
     <motion.button
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.15 }}
       className={`
         w-full flex justify-center items-center gap-2 py-3 px-4 
         rounded-xl text-sm font-semibold transition-colors

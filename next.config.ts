@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Performance optimizations (swcMinify is deprecated in Next.js 15)
+  poweredByHeader: false,
+  
   images: {
     remotePatterns: [
       {
@@ -18,7 +21,7 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "*.vercel.app",
-        pathname: "/uploads/**",
+        pathname: "/**",
       },
       {
         protocol: "https",
@@ -42,7 +45,37 @@ const nextConfig: NextConfig = {
         hostname: "baisblpccyajqfasyicx.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
+      // Avatar placeholder services
+      {
+        protocol: "https",
+        hostname: "avatar.vercel.sh",
+        pathname: "/**",
+      },
     ],
+    formats: ['image/webp', 'image/avif'],
+  },
+  
+  // Security headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
   },
 };
 

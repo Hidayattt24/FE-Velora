@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .next out node_modules/.cache"
   },
   "dependencies": {
     "@tabler/icons-react": "^3.34.0",
