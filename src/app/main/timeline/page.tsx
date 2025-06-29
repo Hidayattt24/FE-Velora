@@ -3,6 +3,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  timelineService,
+  TimelineEntry,
+  ApiResponse,
+} from "@/lib/api/timeline";
+import { useRouter } from "next/navigation";
+import {
   IconAlertTriangle,
   IconX,
   IconCheck,
@@ -34,7 +40,7 @@ interface Symptom {
   isDanger: boolean;
 }
 
-// Journal entry interface
+// Journal entry interface - sesuaikan dengan backend
 interface JournalEntry {
   week: number;
   date: string;
@@ -46,6 +52,13 @@ interface JournalEntry {
   };
   healthServicesNotes: string;
   symptomsNotes: string;
+}
+
+// Loading state interface
+interface LoadingState {
+  loading: boolean;
+  saving: boolean;
+  error: string | null;
 }
 
 // Health services data based on Buku KIA 2024
@@ -217,6 +230,8 @@ const getWeeksInTrimester = (trimester: number): number[] => {
 };
 
 export default function TimelinePage() {
+  const router = useRouter();
+
   // State for selected trimester (1, 2, or 3)
   const [selectedTrimester, setSelectedTrimester] = useState<number>(1);
 
@@ -247,6 +262,62 @@ export default function TimelinePage() {
   const [expandedHealthServices, setExpandedHealthServices] =
     useState<boolean>(false);
   const [expandedSymptoms, setExpandedSymptoms] = useState<boolean>(false);
+
+  // Loading and error state
+  const [loadingState, setLoadingState] = useState<LoadingState>({
+    loading: true,
+    saving: false,
+    error: null,
+  });
+
+  // Initialize journal entries from backend when component mounts
+  useEffect(() => {
+    // Check if user is authenticated first
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      router.push("/auth/login");
+      return;
+    }
+
+    loadTimelineEntries();
+  }, [router]);
+
+  // Load timeline entries from backend
+  const loadTimelineEntries = async () => {
+    try {
+      setLoadingState((prev) => ({ ...prev, loading: true, error: null }));
+      const response = await timelineService.getTimelineEntries();
+
+      if (response.success && response.data?.entries) {
+        // Convert backend entries to frontend format
+        const entriesMap: { [week: number]: JournalEntry } = {};
+
+        response.data.entries.forEach((entry: TimelineEntry) => {
+          entriesMap[entry.pregnancy_week] = {
+            week: entry.pregnancy_week,
+            date:
+              entry.created_at?.split("T")[0] ||
+              new Date().toISOString().split("T")[0],
+            healthServices: entry.health_services || {},
+            symptoms: entry.symptoms || {},
+            healthServicesNotes: entry.health_services_notes || "",
+            symptomsNotes: entry.symptoms_notes || "",
+          };
+        });
+
+        setJournalEntries(entriesMap);
+      }
+    } catch (error) {
+      console.error("Error loading timeline entries:", error);
+      setLoadingState((prev) => ({
+        ...prev,
+        error:
+          error instanceof Error ? error.message : "Gagal memuat data timeline",
+      }));
+    } finally {
+      setLoadingState((prev) => ({ ...prev, loading: false }));
+    }
+  };
 
   // Initialize or load journal entry for the selected week
   useEffect(() => {
@@ -335,22 +406,55 @@ export default function TimelinePage() {
     }
   };
 
-  // Save the journal entry
-  const saveJournalEntry = () => {
-    const entry = getJournalEntry();
+  // Save the journal entry to backend
+  const saveJournalEntry = async () => {
+    try {
+      setLoadingState((prev) => ({ ...prev, saving: true, error: null }));
 
-    setJournalEntries((prev) => ({
-      ...prev,
-      [selectedWeek]: {
-        ...entry,
-        healthServicesNotes: healthServicesNotes,
-        symptomsNotes: symptomsNotes,
-        date: new Date().toISOString().split("T")[0],
-      },
-    }));
+      const entry = getJournalEntry();
 
-    // Show success message or toast here
-    alert("Catatan minggu " + selectedWeek + " berhasil disimpan!");
+      // Prepare data for backend
+      const timelineEntry: Omit<
+        TimelineEntry,
+        "id" | "user_id" | "created_at" | "updated_at"
+      > = {
+        pregnancy_week: selectedWeek,
+        health_services: entry.healthServices,
+        symptoms: entry.symptoms,
+        health_services_notes: healthServicesNotes,
+        symptoms_notes: symptomsNotes,
+      };
+
+      const response = await timelineService.saveTimelineEntry(timelineEntry);
+
+      if (response.success) {
+        // Update local state with saved data
+        setJournalEntries((prev) => ({
+          ...prev,
+          [selectedWeek]: {
+            ...entry,
+            healthServicesNotes: healthServicesNotes,
+            symptomsNotes: symptomsNotes,
+            date: new Date().toISOString().split("T")[0],
+          },
+        }));
+
+        // Show success message
+        alert("Catatan minggu " + selectedWeek + " berhasil disimpan!");
+      } else {
+        throw new Error(response.message || "Gagal menyimpan data");
+      }
+    } catch (error) {
+      console.error("Error saving timeline entry:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Gagal menyimpan data timeline";
+      setLoadingState((prev) => ({ ...prev, error: errorMessage }));
+      alert("Error: " + errorMessage);
+    } finally {
+      setLoadingState((prev) => ({ ...prev, saving: false }));
+    }
   };
 
   // Get danger symptoms
@@ -393,325 +497,173 @@ export default function TimelinePage() {
       {/* Profile Header */}
       <ProfileHeader />
 
-      {/* Main Content */}
-      <div className="container max-w-4xl mx-auto px-4">
-        {/* Centered Page Title */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-[#D291BC] leading-tight">
-            Jurnal & Pemantauan
-            <br />
-            <span className="text-lg md:text-xl font-medium text-gray-600">
-              Lembar Pemantauan Ibu Hamil
-            </span>
-          </h1>
+      {/* Loading State */}
+      {loadingState.loading && (
+        <div className="text-center py-8">
+          <div className="inline-flex items-center gap-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#D291BC]"></div>
+            <span className="text-gray-600">Memuat data timeline...</span>
+          </div>
         </div>
+      )}
 
-        {/* Trimester Filter Navigation */}
-        <div className="mb-6">
-          <div className="flex justify-center">
-            <div className="bg-white rounded-2xl p-2 shadow-lg border border-pink-100">
-              <div className="flex gap-1">
-                {[1, 2, 3].map((trimester) => (
+      {/* Error State */}
+      {loadingState.error && !loadingState.loading && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <div className="flex items-center gap-2 text-red-700">
+            <IconAlertCircle className="w-5 h-5" />
+            <span>{loadingState.error}</span>
+          </div>
+          <button
+            onClick={loadTimelineEntries}
+            className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+          >
+            Coba lagi
+          </button>
+        </div>
+      )}
+
+      {/* Main Content */}
+      {!loadingState.loading && (
+        <div className="container max-w-4xl mx-auto px-4">
+          {/* Centered Page Title */}
+          <div className="text-center mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-[#D291BC] leading-tight">
+              Jurnal & Pemantauan
+              <br />
+              <span className="text-lg md:text-xl font-medium text-gray-600">
+                Lembar Pemantauan Ibu Hamil
+              </span>
+            </h1>
+          </div>
+          {/* Trimester Filter Navigation */}
+          <div className="mb-6">
+            <div className="flex justify-center">
+              <div className="bg-white rounded-2xl p-2 shadow-lg border border-pink-100">
+                <div className="flex gap-1">
+                  {[1, 2, 3].map((trimester) => (
+                    <button
+                      key={trimester}
+                      onClick={() => setSelectedTrimester(trimester)}
+                      className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                        selectedTrimester === trimester
+                          ? "bg-[#D291BC] text-white shadow-md"
+                          : "text-[#D291BC] hover:bg-pink-50"
+                      }`}
+                    >
+                      Trimester {trimester}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Week Selector Grid */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-700 mb-2 text-center">
+              Pilih Minggu Kehamilan (Trimester {selectedTrimester})
+            </h3>
+            <p className="text-sm text-gray-500 text-center mb-4">
+              <IconCheck className="w-4 h-4 inline text-green-500 mr-1" />
+              Minggu dengan tanda hijau sudah diisi
+            </p>
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+              {getWeeksInTrimester(selectedTrimester).map((week) => {
+                const isFilled = isWeekFilled(week);
+                return (
                   <button
-                    key={trimester}
-                    onClick={() => setSelectedTrimester(trimester)}
-                    className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-                      selectedTrimester === trimester
-                        ? "bg-[#D291BC] text-white shadow-md"
-                        : "text-[#D291BC] hover:bg-pink-50"
+                    key={week}
+                    onClick={() => setSelectedWeek(week)}
+                    className={`relative p-3 rounded-xl font-medium text-sm transition-all duration-200 ${
+                      selectedWeek === week
+                        ? "bg-[#D291BC] text-white shadow-md scale-105"
+                        : "bg-white text-[#D291BC] border border-pink-200 hover:bg-pink-50"
                     }`}
                   >
-                    Trimester {trimester}
+                    {week}
+                    {/* Green indicator for filled weeks */}
+                    {isFilled && (
+                      <motion.div
+                        className="absolute -top-1 -right-1"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 500,
+                          damping: 30,
+                        }}
+                      >
+                        <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow-sm border-2 border-white">
+                          <IconCheck className="w-3 h-3 text-white" />
+                        </div>
+                      </motion.div>
+                    )}
                   </button>
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
-        </div>
-
-        {/* Week Selector Grid */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2 text-center">
-            Pilih Minggu Kehamilan (Trimester {selectedTrimester})
-          </h3>
-          <p className="text-sm text-gray-500 text-center mb-4">
-            <IconCheck className="w-4 h-4 inline text-green-500 mr-1" />
-            Minggu dengan tanda hijau sudah diisi
-          </p>
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-            {getWeeksInTrimester(selectedTrimester).map((week) => {
-              const isFilled = isWeekFilled(week);
-              return (
-                <button
-                  key={week}
-                  onClick={() => setSelectedWeek(week)}
-                  className={`relative p-3 rounded-xl font-medium text-sm transition-all duration-200 ${
-                    selectedWeek === week
-                      ? "bg-[#D291BC] text-white shadow-md scale-105"
-                      : "bg-white text-[#D291BC] border border-pink-200 hover:bg-pink-50"
-                  }`}
-                >
-                  {week}
-                  {/* Green indicator for filled weeks */}
-                  {isFilled && (
-                    <motion.div
-                      className="absolute -top-1 -right-1"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 30,
-                      }}
-                    >
-                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow-sm border-2 border-white">
-                        <IconCheck className="w-3 h-3 text-white" />
-                      </div>
-                    </motion.div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Weekly Form */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Card 1: Pelayanan Kesehatan */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl shadow-lg border border-pink-100 overflow-hidden h-fit"
-          >
-            <div
-              className="bg-gradient-to-r from-[#D291BC] to-[#E2A8D6] p-4 cursor-pointer"
-              onClick={() => setExpandedHealthServices(!expandedHealthServices)}
+          {/* Weekly Form */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Card 1: Pelayanan Kesehatan */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-2xl shadow-lg border border-pink-100 overflow-hidden h-fit"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <IconStethoscope className="w-6 h-6 text-white" />
-                  <div>
-                    <h2 className="text-xl font-bold text-white">
-                      Pelayanan Kesehatan
-                    </h2>
-                    <p className="text-pink-100 text-sm">
-                      Minggu ke-{selectedWeek} kehamilan
-                    </p>
-                  </div>
-                </div>
-                <motion.div
-                  animate={{ rotate: expandedHealthServices ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <IconChevronDown className="w-5 h-5 text-white" />
-                </motion.div>
-              </div>
-            </div>
-
-            <AnimatePresence>
-              {expandedHealthServices && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
-                >
-                  <div className="p-6">
-                    <div className="grid gap-4">
-                      {healthServicesData.map((service) => {
-                        const isRecommended =
-                          service.recommendedWeeks.includes(selectedWeek);
-                        const isChecked =
-                          getJournalEntry().healthServices[service.id] || false;
-
-                        return (
-                          <motion.div
-                            key={service.id}
-                            className={`border rounded-xl p-4 transition-all duration-200 ${
-                              isRecommended
-                                ? "border-pink-200 bg-pink-50"
-                                : "border-gray-200 bg-gray-50"
-                            }`}
-                            whileHover={{ scale: 1.01 }}
-                          >
-                            <label className="flex items-start gap-3 cursor-pointer">
-                              <div className="relative mt-1">
-                                <input
-                                  type="checkbox"
-                                  checked={isChecked}
-                                  onChange={() =>
-                                    toggleHealthService(service.id)
-                                  }
-                                  className="sr-only"
-                                />
-                                <div
-                                  className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
-                                    isChecked
-                                      ? "bg-[#D291BC] border-[#D291BC]"
-                                      : "border-pink-300 hover:border-[#D291BC]"
-                                  }`}
-                                >
-                                  {isChecked && (
-                                    <IconCheck className="w-3 h-3 text-white" />
-                                  )}
-                                </div>
-                              </div>
-                              <div className="flex-1">
-                                <h4
-                                  className={`font-medium ${
-                                    isRecommended
-                                      ? "text-pink-700"
-                                      : "text-gray-700"
-                                  }`}
-                                >
-                                  {service.title}
-                                  {isRecommended && (
-                                    <span className="ml-2 text-xs bg-pink-200 text-pink-700 px-2 py-1 rounded-full">
-                                      Direkomendasikan
-                                    </span>
-                                  )}
-                                </h4>
-                                <p className="text-sm text-gray-600 mt-1">
-                                  {service.description}
-                                </p>
-                              </div>
-                            </label>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Notes for Health Services */}
-                    <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <IconNotes className="w-4 h-4 inline mr-2" />
-                        Catatan Pelayanan Kesehatan
-                      </label>
-                      <textarea
-                        value={healthServicesNotes}
-                        onChange={(e) => setHealthServicesNotes(e.target.value)}
-                        placeholder="Tambahkan catatan tentang pelayanan kesehatan yang diterima..."
-                        className="w-full p-4 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-[#D291BC] transition-colors resize-none"
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* Card 2: Pemantauan Gejala Mingguan */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-2xl shadow-lg border border-pink-100 overflow-hidden h-fit"
-          >
-            <div
-              className="bg-gradient-to-r from-[#D291BC] to-[#E2A8D6] p-4 cursor-pointer"
-              onClick={() => setExpandedSymptoms(!expandedSymptoms)}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <IconHeartbeat className="w-6 h-6 text-white" />
-                  <div>
-                    <h2 className="text-xl font-bold text-white">
-                      Pemantauan Gejala Mingguan
-                    </h2>
-                    <p className="text-pink-100 text-sm">
-                      Pantau gejala dan tanda-tanda penting
-                    </p>
-                  </div>
-                </div>
-                <motion.div
-                  animate={{ rotate: expandedSymptoms ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <IconChevronDown className="w-5 h-5 text-white" />
-                </motion.div>
-              </div>
-            </div>
-
-            <AnimatePresence>
-              {expandedSymptoms && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
-                >
-                  <div className="p-6">
-                    {/* Danger Signs Section */}
-                    <div className="mb-6">
-                      <div className="flex items-center gap-2 mb-4">
-                        <IconAlertTriangle className="w-5 h-5 text-red-500" />
-                        <h3 className="text-lg font-semibold text-red-600">
-                          Tanda Bahaya Kehamilan
-                        </h3>
-                      </div>
-                      <div className="grid gap-3">
-                        {getDangerSymptoms().map((symptom) => {
-                          const isChecked =
-                            getJournalEntry().symptoms[symptom.id] || false;
-
-                          return (
-                            <motion.div
-                              key={symptom.id}
-                              className="border-2 border-red-200 rounded-xl p-4 bg-red-50"
-                              whileHover={{ scale: 1.01 }}
-                            >
-                              <label className="flex items-start gap-3 cursor-pointer">
-                                <div className="relative mt-1">
-                                  <input
-                                    type="checkbox"
-                                    checked={isChecked}
-                                    onChange={() => toggleSymptom(symptom.id)}
-                                    className="sr-only"
-                                  />
-                                  <div
-                                    className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
-                                      isChecked
-                                        ? "bg-red-500 border-red-500"
-                                        : "border-red-400 hover:border-red-500"
-                                    }`}
-                                  >
-                                    {isChecked && (
-                                      <IconCheck className="w-3 h-3 text-white" />
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="flex-1">
-                                  <h4 className="font-medium text-red-700">
-                                    {symptom.title}
-                                  </h4>
-                                  <p className="text-sm text-red-600 mt-1">
-                                    {symptom.description}
-                                  </p>
-                                </div>
-                              </label>
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Normal Symptoms Section */}
+              <div
+                className="bg-gradient-to-r from-[#D291BC] to-[#E2A8D6] p-4 cursor-pointer"
+                onClick={() =>
+                  setExpandedHealthServices(!expandedHealthServices)
+                }
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <IconStethoscope className="w-6 h-6 text-white" />
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                        Gejala Umum Kehamilan
-                      </h3>
-                      <div className="grid gap-3">
-                        {getNormalSymptoms().map((symptom) => {
+                      <h2 className="text-xl font-bold text-white">
+                        Pelayanan Kesehatan
+                      </h2>
+                      <p className="text-pink-100 text-sm">
+                        Minggu ke-{selectedWeek} kehamilan
+                      </p>
+                    </div>
+                  </div>
+                  <motion.div
+                    animate={{ rotate: expandedHealthServices ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <IconChevronDown className="w-5 h-5 text-white" />
+                  </motion.div>
+                </div>
+              </div>
+
+              <AnimatePresence>
+                {expandedHealthServices && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-6">
+                      <div className="grid gap-4">
+                        {healthServicesData.map((service) => {
+                          const isRecommended =
+                            service.recommendedWeeks.includes(selectedWeek);
                           const isChecked =
-                            getJournalEntry().symptoms[symptom.id] || false;
+                            getJournalEntry().healthServices[service.id] ||
+                            false;
 
                           return (
                             <motion.div
-                              key={symptom.id}
-                              className="border border-gray-200 rounded-xl p-4 hover:bg-gray-50"
+                              key={service.id}
+                              className={`border rounded-xl p-4 transition-all duration-200 ${
+                                isRecommended
+                                  ? "border-pink-200 bg-pink-50"
+                                  : "border-gray-200 bg-gray-50"
+                              }`}
                               whileHover={{ scale: 1.01 }}
                             >
                               <label className="flex items-start gap-3 cursor-pointer">
@@ -719,7 +671,9 @@ export default function TimelinePage() {
                                   <input
                                     type="checkbox"
                                     checked={isChecked}
-                                    onChange={() => toggleSymptom(symptom.id)}
+                                    onChange={() =>
+                                      toggleHealthService(service.id)
+                                    }
                                     className="sr-only"
                                   />
                                   <div
@@ -735,11 +689,22 @@ export default function TimelinePage() {
                                   </div>
                                 </div>
                                 <div className="flex-1">
-                                  <h4 className="font-medium text-gray-700">
-                                    {symptom.title}
+                                  <h4
+                                    className={`font-medium ${
+                                      isRecommended
+                                        ? "text-pink-700"
+                                        : "text-gray-700"
+                                    }`}
+                                  >
+                                    {service.title}
+                                    {isRecommended && (
+                                      <span className="ml-2 text-xs bg-pink-200 text-pink-700 px-2 py-1 rounded-full">
+                                        Direkomendasikan
+                                      </span>
+                                    )}
                                   </h4>
                                   <p className="text-sm text-gray-600 mt-1">
-                                    {symptom.description}
+                                    {service.description}
                                   </p>
                                 </div>
                               </label>
@@ -747,42 +712,212 @@ export default function TimelinePage() {
                           );
                         })}
                       </div>
-                    </div>
 
-                    {/* Notes for Symptoms */}
-                    <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <IconNotes className="w-4 h-4 inline mr-2" />
-                        Catatan Gejala & Keluhan
-                      </label>
-                      <textarea
-                        value={symptomsNotes}
-                        onChange={(e) => setSymptomsNotes(e.target.value)}
-                        placeholder="Deskripsikan gejala atau keluhan yang dirasakan secara detail..."
-                        className="w-full p-4 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-[#D291BC] transition-colors resize-none"
-                        rows={3}
-                      />
+                      {/* Notes for Health Services */}
+                      <div className="mt-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <IconNotes className="w-4 h-4 inline mr-2" />
+                          Catatan Pelayanan Kesehatan
+                        </label>
+                        <textarea
+                          value={healthServicesNotes}
+                          onChange={(e) =>
+                            setHealthServicesNotes(e.target.value)
+                          }
+                          placeholder="Tambahkan catatan tentang pelayanan kesehatan yang diterima..."
+                          className="w-full p-4 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-[#D291BC] transition-colors resize-none"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Card 2: Pemantauan Gejala Mingguan */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white rounded-2xl shadow-lg border border-pink-100 overflow-hidden h-fit"
+            >
+              <div
+                className="bg-gradient-to-r from-[#D291BC] to-[#E2A8D6] p-4 cursor-pointer"
+                onClick={() => setExpandedSymptoms(!expandedSymptoms)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <IconHeartbeat className="w-6 h-6 text-white" />
+                    <div>
+                      <h2 className="text-xl font-bold text-white">
+                        Pemantauan Gejala Mingguan
+                      </h2>
+                      <p className="text-pink-100 text-sm">
+                        Pantau gejala dan tanda-tanda penting
+                      </p>
                     </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </div>
+                  <motion.div
+                    animate={{ rotate: expandedSymptoms ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <IconChevronDown className="w-5 h-5 text-white" />
+                  </motion.div>
+                </div>
+              </div>
 
-        {/* Save Button */}
-        <div className="text-center pt-8">
-          <StatefulButton
-            onSubmit={async () => {
-              await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-              saveJournalEntry();
-            }}
-            className="px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl"
-          >
-            Simpan Catatan Minggu {selectedWeek}
-          </StatefulButton>
+              <AnimatePresence>
+                {expandedSymptoms && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-6">
+                      {/* Danger Signs Section */}
+                      <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-4">
+                          <IconAlertTriangle className="w-5 h-5 text-red-500" />
+                          <h3 className="text-lg font-semibold text-red-600">
+                            Tanda Bahaya Kehamilan
+                          </h3>
+                        </div>
+                        <div className="grid gap-3">
+                          {getDangerSymptoms().map((symptom) => {
+                            const isChecked =
+                              getJournalEntry().symptoms[symptom.id] || false;
+
+                            return (
+                              <motion.div
+                                key={symptom.id}
+                                className="border-2 border-red-200 rounded-xl p-4 bg-red-50"
+                                whileHover={{ scale: 1.01 }}
+                              >
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                  <div className="relative mt-1">
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={() => toggleSymptom(symptom.id)}
+                                      className="sr-only"
+                                    />
+                                    <div
+                                      className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                                        isChecked
+                                          ? "bg-red-500 border-red-500"
+                                          : "border-red-400 hover:border-red-500"
+                                      }`}
+                                    >
+                                      {isChecked && (
+                                        <IconCheck className="w-3 h-3 text-white" />
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex-1">
+                                    <h4 className="font-medium text-red-700">
+                                      {symptom.title}
+                                    </h4>
+                                    <p className="text-sm text-red-600 mt-1">
+                                      {symptom.description}
+                                    </p>
+                                  </div>
+                                </label>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Normal Symptoms Section */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                          Gejala Umum Kehamilan
+                        </h3>
+                        <div className="grid gap-3">
+                          {getNormalSymptoms().map((symptom) => {
+                            const isChecked =
+                              getJournalEntry().symptoms[symptom.id] || false;
+
+                            return (
+                              <motion.div
+                                key={symptom.id}
+                                className="border border-gray-200 rounded-xl p-4 hover:bg-gray-50"
+                                whileHover={{ scale: 1.01 }}
+                              >
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                  <div className="relative mt-1">
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={() => toggleSymptom(symptom.id)}
+                                      className="sr-only"
+                                    />
+                                    <div
+                                      className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                                        isChecked
+                                          ? "bg-[#D291BC] border-[#D291BC]"
+                                          : "border-pink-300 hover:border-[#D291BC]"
+                                      }`}
+                                    >
+                                      {isChecked && (
+                                        <IconCheck className="w-3 h-3 text-white" />
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex-1">
+                                    <h4 className="font-medium text-gray-700">
+                                      {symptom.title}
+                                    </h4>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      {symptom.description}
+                                    </p>
+                                  </div>
+                                </label>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Notes for Symptoms */}
+                      <div className="mt-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <IconNotes className="w-4 h-4 inline mr-2" />
+                          Catatan Gejala & Keluhan
+                        </label>
+                        <textarea
+                          value={symptomsNotes}
+                          onChange={(e) => setSymptomsNotes(e.target.value)}
+                          placeholder="Deskripsikan gejala atau keluhan yang dirasakan secara detail..."
+                          className="w-full p-4 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-[#D291BC] transition-colors resize-none"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
+          {/* Save Button */}
+          <div className="text-center pt-8">
+            <StatefulButton
+              onSubmit={async () => {
+                await saveJournalEntry();
+              }}
+              className="px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl"
+              disabled={loadingState.saving}
+            >
+              {loadingState.saving
+                ? "Menyimpan..."
+                : `Simpan Catatan Minggu ${selectedWeek}`}
+            </StatefulButton>
+          </div>{" "}
         </div>
-      </div>
+      )}
 
       {/* Scroll to Top Button */}
       <AnimatePresence>
