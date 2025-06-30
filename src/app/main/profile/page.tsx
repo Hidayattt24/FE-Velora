@@ -8,9 +8,6 @@ import {
   IconMail,
   IconLogout,
   IconCamera,
-  IconTrash,
-  IconEye,
-  IconEyeOff,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -27,10 +24,6 @@ export default function ProfilePage() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deletePassword, setDeletePassword] = useState("");
-  const [showDeletePassword, setShowDeletePassword] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -70,33 +63,6 @@ export default function ProfilePage() {
 
   const confirmLogout = () => {
     setShowLogoutModal(true);
-  };
-
-  const handleDeleteAccount = async () => {
-    if (!deletePassword.trim()) {
-      toast.error("Password diperlukan untuk menghapus akun");
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      const response = await profileService.deleteAccount(deletePassword);
-
-      if (response.success) {
-        toast.success("Akun berhasil dihapus");
-        logout(); // This will also show logout notification
-        router.push("/auth/login");
-      }
-    } catch (error) {
-      console.error("Delete account error:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Gagal menghapus akun"
-      );
-    } finally {
-      setIsDeleting(false);
-      setShowDeleteModal(false);
-      setDeletePassword("");
-    }
   };
 
   const getProfileImageUrl = () => {
@@ -204,17 +170,6 @@ export default function ProfilePage() {
             <IconLogout className="w-5 h-5" />
             <span className="text-base lg:text-lg">Keluar</span>
           </motion.button>
-
-          {/* Delete Account Button */}
-          <motion.button
-            onClick={() => setShowDeleteModal(true)}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full py-4 lg:py-5 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-2xl flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transition-all duration-300 mt-4"
-          >
-            <IconTrash className="w-5 h-5" />
-            <span className="text-base lg:text-lg">Hapus Akun</span>
-          </motion.button>
         </div>
       </motion.div>
 
@@ -254,79 +209,6 @@ export default function ProfilePage() {
                 className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[#D291BC] to-pink-400 text-white font-semibold hover:from-[#C280AB] hover:to-pink-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoggingOut ? "Mengeluarkan..." : "Ya, Logout"}
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Delete Account Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
-          >
-            <div className="text-center mb-6">
-              <div className="bg-red-100 rounded-full p-3 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <IconTrash className="w-8 h-8 text-red-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                Hapus Akun
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Tindakan ini tidak dapat dibatalkan. Semua data Anda akan
-                dihapus secara permanen.
-              </p>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-semibold mb-3">
-                Masukkan kata sandi Anda untuk konfirmasi
-              </label>
-              <div className="relative">
-                <input
-                  type={showDeletePassword ? "text" : "password"}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all text-gray-700 bg-gray-50 placeholder-gray-400 pr-12"
-                  value={deletePassword}
-                  onChange={(e) => setDeletePassword(e.target.value)}
-                  placeholder="Masukkan kata sandi Anda"
-                  disabled={isDeleting}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowDeletePassword(!showDeletePassword)}
-                  disabled={isDeleting}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-all duration-200 disabled:opacity-50"
-                >
-                  {showDeletePassword ? (
-                    <IconEyeOff className="w-4 h-4" />
-                  ) : (
-                    <IconEye className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setDeletePassword("");
-                }}
-                disabled={isDeleting}
-                className="flex-1 py-3 px-4 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-all duration-200 disabled:opacity-50"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                disabled={isDeleting || !deletePassword.trim()}
-                className="flex-1 py-3 px-4 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isDeleting ? "Menghapus..." : "Hapus Akun"}
               </button>
             </div>
           </motion.div>
