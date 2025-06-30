@@ -147,12 +147,16 @@ cp .env.example .env.local
 
 4. **Configure Environment Variables**
 ```env
+# Velora Frontend Environment Variables
+
 # API Configuration
 NEXT_PUBLIC_API_URL=https://api-velora.vercel.app
 
-# Supabase Configuration (untuk development)
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+# ML API Configuration
+NEXT_PUBLIC_ML_API_URL=https://dayattttt2444-maternal-health-risk.hf.space
+
+# Development settings
+NEXT_PUBLIC_ENV=development
 ```
 
 5. **Run Development Server**
