@@ -11,7 +11,6 @@ import {
   IconHome,
   IconUser,
   IconMessage,
-  IconLogout,
 } from "@tabler/icons-react";
 import {
   motion,
@@ -71,11 +70,6 @@ const authNavigationItems = [
     title: "Kontak",
     href: "/contact",
     icon: <IconPhone className="h-full w-full text-[#D291BC]" />,
-  },
-  {
-    title: "Keluar",
-    href: "/logout",
-    icon: <IconLogout className="h-full w-full text-[#D291BC]" />,
   },
 ];
 
