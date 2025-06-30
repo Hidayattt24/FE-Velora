@@ -170,26 +170,26 @@ export default function ProfilePage() {
         {/* Menu Items */}
         <div className="lg:col-span-7 space-y-4">
           <h3 className="text-2xl lg:text-5xl font-bold text-[#D291BC] mb-6 lg:mb-8">
-            Account Settings
+            Pengaturan Akun
           </h3>
           <div className="grid gap-4 lg:gap-5">
             <ProfileMenuItem
               href="/main/profile/edit-profile"
               icon={<IconEdit className="w-5 h-5" />}
-              label="Edit Profile"
-              description="Update your personal information"
+              label="Edit Profil"
+              description="Perbarui informasi pribadi Anda"
             />
             <ProfileMenuItem
               href="/main/profile/change-password"
               icon={<IconLock className="w-5 h-5" />}
-              label="Change Password"
-              description="Update your account security"
+              label="Ubah Kata Sandi"
+              description="Perbarui keamanan akun Anda"
             />
             <ProfileMenuItem
               href="/main/profile/edit-email"
               icon={<IconMail className="w-5 h-5" />}
-              label="Change Email"
-              description="Update your email address"
+              label="Ubah Email"
+              description="Perbarui alamat email Anda"
             />
           </div>
 
@@ -202,7 +202,7 @@ export default function ProfilePage() {
             className="w-full py-4 lg:py-5 bg-gradient-to-r from-[#D291BC] to-pink-400 text-white font-semibold rounded-2xl flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transition-all duration-300 mt-8"
           >
             <IconLogout className="w-5 h-5" />
-            <span className="text-base lg:text-lg">Logout</span>
+            <span className="text-base lg:text-lg">Keluar</span>
           </motion.button>
 
           {/* Delete Account Button */}
@@ -213,7 +213,7 @@ export default function ProfilePage() {
             className="w-full py-4 lg:py-5 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-2xl flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transition-all duration-300 mt-4"
           >
             <IconTrash className="w-5 h-5" />
-            <span className="text-base lg:text-lg">Delete Account</span>
+            <span className="text-base lg:text-lg">Hapus Akun</span>
           </motion.button>
         </div>
       </motion.div>
@@ -253,7 +253,7 @@ export default function ProfilePage() {
                 disabled={isLoggingOut}
                 className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[#D291BC] to-pink-400 text-white font-semibold hover:from-[#C280AB] hover:to-pink-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoggingOut ? "Logging out..." : "Ya, Logout"}
+                {isLoggingOut ? "Mengeluarkan..." : "Ya, Logout"}
               </button>
             </div>
           </motion.div>
@@ -274,17 +274,17 @@ export default function ProfilePage() {
                 <IconTrash className="w-8 h-8 text-red-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">
-                Delete Account
+                Hapus Akun
               </h3>
               <p className="text-gray-600 text-sm">
-                This action cannot be undone. All your data will be permanently
-                deleted.
+                Tindakan ini tidak dapat dibatalkan. Semua data Anda akan
+                dihapus secara permanen.
               </p>
             </div>
 
             <div className="mb-6">
               <label className="block text-gray-700 text-sm font-semibold mb-3">
-                Enter your password to confirm
+                Masukkan kata sandi Anda untuk konfirmasi
               </label>
               <div className="relative">
                 <input
@@ -292,7 +292,7 @@ export default function ProfilePage() {
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all text-gray-700 bg-gray-50 placeholder-gray-400 pr-12"
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
-                  placeholder="Enter your password"
+                  placeholder="Masukkan kata sandi Anda"
                   disabled={isDeleting}
                 />
                 <button
@@ -319,14 +319,14 @@ export default function ProfilePage() {
                 disabled={isDeleting}
                 className="flex-1 py-3 px-4 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-all duration-200 disabled:opacity-50"
               >
-                Cancel
+                Batal
               </button>
               <button
                 onClick={handleDeleteAccount}
                 disabled={isDeleting || !deletePassword.trim()}
                 className="flex-1 py-3 px-4 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isDeleting ? "Deleting..." : "Delete Account"}
+                {isDeleting ? "Menghapus..." : "Hapus Akun"}
               </button>
             </div>
           </motion.div>
