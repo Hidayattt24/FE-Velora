@@ -5,7 +5,7 @@
   
   **Platform Terlengkap untuk Dokumentasi, Kesehatan, Dukungan, & Perhatian Ibu Hamil**
   
-  [![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://fe-velora.vercel.app)
+  [![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://velora-lake.vercel.app)
   [![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
@@ -23,7 +23,8 @@
 
 **Visi:** Menjadi sahabat digital terpercaya untuk setiap ibu hamil dalam menjalani perjalanan kehamilan yang lebih bermakna.
 
-**Misi:** 
+**Misi:**
+
 - 📸 Menyediakan platform dokumentasi visual perjalanan kehamilan
 - 🏥 Memberikan tools monitoring kesehatan yang mudah dan akurat
 - 📚 Menyajikan konten edukatif berbasis riset medis terpercaya
@@ -39,18 +40,21 @@
 <td width="50%">
 
 ### 📸 **Galeri Kehamilan**
+
 - Upload foto & video ke cloud storage
 - Organisasi berdasarkan trimester & minggu
 - Sharing dengan keluarga & dokter
 - Backup otomatis & sinkronisasi
 
 ### 📅 **Timeline Interaktif**
+
 - Tracking perkembangan minggu ke minggu
 - Milestone kehamilan visual
 - Jadwal pemeriksaan & reminder
 - Progress tracking komprehensif
 
 ### 🏥 **Diagnosa AI (84.21% Akurasi)**
+
 - Prediksi risiko kesehatan realtime
 - Input data vital signs
 - Laporan PDF downloadable
@@ -60,18 +64,21 @@
 <td width="50%">
 
 ### 📖 **Jurnal Digital**
+
 - Koleksi 50+ artikel medis terpercaya
 - Kategorisasi berdasarkan trimester
 - Bookmark & reading tracker
 - Tips dari ahli kebidanan
 
 ### 👤 **Manajemen Profil**
+
 - Upload foto profil ke Supabase Storage
 - Edit informasi personal & medis
 - Keamanan data tingkat enterprise
 - Dashboard overview lengkap
 
 ### 🔒 **Keamanan & Privacy**
+
 - Enkripsi end-to-end
 - Compliance GDPR
 - Backup multi-region
@@ -86,6 +93,7 @@
 ## 🛠️ Tech Stack
 
 ### **Frontend**
+
 ```bash
 Framework     : Next.js 14 (App Router)
 Language      : TypeScript
@@ -97,6 +105,7 @@ Authentication: Custom JWT + Context
 ```
 
 ### **Backend**
+
 ```bash
 Runtime       : Node.js + Express.js
 Database      : Supabase (PostgreSQL)
@@ -107,6 +116,7 @@ Deployment    : Vercel (Serverless)
 ```
 
 ### **Infrastructure**
+
 ```bash
 Frontend Host : Vercel
 Backend Host  : Vercel (Serverless Functions)
@@ -121,6 +131,7 @@ Monitoring    : Vercel Analytics
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 ```bash
 Node.js 18.0.0+
 npm 9.0.0+
@@ -130,22 +141,26 @@ Git
 ### Installation
 
 1. **Clone Repository**
+
 ```bash
 git clone https://github.com/Hidayattt24/fe-velora.git
 cd fe-velora
 ```
 
 2. **Install Dependencies**
+
 ```bash
 npm install
 ```
 
 3. **Environment Setup**
+
 ```bash
 cp .env.example .env.local
 ```
 
 4. **Configure Environment Variables**
+
 ```env
 # Velora Frontend Environment Variables
 
@@ -160,11 +175,13 @@ NEXT_PUBLIC_ENV=development
 ```
 
 5. **Run Development Server**
+
 ```bash
 npm run dev
 ```
 
 6. **Open Application**
+
 ```
 http://localhost:3000
 ```
@@ -217,6 +234,7 @@ fe-velora/
 ## 🎨 Design System
 
 ### **Color Palette**
+
 ```css
 Primary Pink    : #D291BC    /* Brand primary */
 Light Pink      : #FFE3EC    /* Backgrounds & accents */
@@ -228,6 +246,7 @@ Error Red       : #EF4444    /* Error states */
 ```
 
 ### **Typography**
+
 ```css
 Font Family     : Inter (System font stack)
 Headings        : 600-700 weight
@@ -236,6 +255,7 @@ Code/Mono       : JetBrains Mono
 ```
 
 ### **Responsive Breakpoints**
+
 ```css
 Mobile          : 0px - 640px
 Tablet          : 641px - 1024px
@@ -248,6 +268,7 @@ Large Desktop   : 1281px+
 ## 🔧 Development Guide
 
 ### **Struktur Komponen**
+
 ```typescript
 // Example: Komponen dengan TypeScript
 interface ComponentProps {
@@ -256,24 +277,30 @@ interface ComponentProps {
   onSubmit: (data: FormData) => void;
 }
 
-export function Component({ title, isLoading = false, onSubmit }: ComponentProps) {
+export function Component({
+  title,
+  isLoading = false,
+  onSubmit,
+}: ComponentProps) {
   // Component logic
 }
 ```
 
 ### **API Integration**
+
 ```typescript
 // Example: Service function
 export const apiService = {
   async getData(id: string): Promise<ApiResponse<Data>> {
     const response = await fetch(`${API_BASE_URL}/data/${id}`);
-    if (!response.ok) throw new Error('Failed to fetch');
+    if (!response.ok) throw new Error("Failed to fetch");
     return response.json();
-  }
+  },
 };
 ```
 
 ### **State Management**
+
 ```typescript
 // Example: Context usage
 const { user, updateUser, isAuthenticated } = useAuth();
@@ -287,12 +314,15 @@ const { user, updateUser, isAuthenticated } = useAuth();
 <summary>🖼️ Klik untuk melihat screenshots</summary>
 
 ### Landing Page
+
 ![Landing Page](docs/screenshots/landing.png)
 
 ### Authentication
+
 ![Login](docs/screenshots/login.png) ![Register](docs/screenshots/register.png)
 
 ### Main Application
+
 ![Gallery](docs/screenshots/gallery.png) ![Timeline](docs/screenshots/timeline.png)
 ![Diagnosis](docs/screenshots/diagnosis.png) ![Journal](docs/screenshots/journal.png)
 
@@ -305,6 +335,7 @@ const { user, updateUser, isAuthenticated } = useAuth();
 ### **Vercel Deployment (Recommended)**
 
 1. **Connect Repository**
+
 ```bash
 # Install Vercel CLI
 npm install -g vercel
@@ -314,12 +345,14 @@ vercel --prod
 ```
 
 2. **Environment Variables**
-Set di Vercel Dashboard:
+   Set di Vercel Dashboard:
+
 ```env
 NEXT_PUBLIC_API_URL=https://api-velora.vercel.app
 ```
 
 3. **Build Settings**
+
 ```json
 {
   "buildCommand": "npm run build",
@@ -329,6 +362,7 @@ NEXT_PUBLIC_API_URL=https://api-velora.vercel.app
 ```
 
 ### **Manual Deployment**
+
 ```bash
 # Build production
 npm run build
@@ -342,6 +376,7 @@ npm start
 ## 🧪 Testing
 
 ### **Run Tests**
+
 ```bash
 # Unit tests
 npm run test
@@ -354,6 +389,7 @@ npm run test:coverage
 ```
 
 ### **Performance Testing**
+
 ```bash
 # Lighthouse audit
 npm run audit
@@ -367,16 +403,19 @@ npm run analyze
 ## 📊 Performance Metrics
 
 ### **Core Web Vitals**
+
 - **LCP (Largest Contentful Paint)**: < 2.5s ⚡
 - **FID (First Input Delay)**: < 100ms ⚡
 - **CLS (Cumulative Layout Shift)**: < 0.1 ⚡
 
 ### **Bundle Size**
+
 - **First Load JS**: 102 kB (Excellent)
 - **Page Components**: ~50-80 kB average
 - **Images**: WebP/AVIF optimized
 
 ### **Lighthouse Score**
+
 - **Performance**: 95+ 🟢
 - **Accessibility**: 100 🟢
 - **Best Practices**: 100 🟢
@@ -389,6 +428,7 @@ npm run analyze
 Kami menyambut kontribusi dari komunitas! Ikuti langkah berikut:
 
 ### **Getting Started**
+
 1. Fork repository
 2. Create feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
@@ -396,6 +436,7 @@ Kami menyambut kontribusi dari komunitas! Ikuti langkah berikut:
 5. Open Pull Request
 
 ### **Coding Standards**
+
 - ✅ TypeScript strict mode
 - ✅ ESLint + Prettier
 - ✅ Conventional Commits
@@ -403,6 +444,7 @@ Kami menyambut kontribusi dari komunitas! Ikuti langkah berikut:
 - ✅ Test coverage > 80%
 
 ### **Pull Request Guidelines**
+
 - Deskripsi lengkap perubahan
 - Screenshots untuk UI changes
 - Test results
@@ -432,6 +474,7 @@ Kami menyambut kontribusi dari komunitas! Ikuti langkah berikut:
 ### **Kontribusi Tim**
 
 **🎨 Hidayat Nur Hakim** - Tech Lead & Full-Stack Developer
+
 - 🎨 UI/UX Design & Prototyping
 - ⚛️ Frontend Development (Next.js + TypeScript)
 - 🔧 Backend Development (Node.js + Express)
@@ -439,6 +482,7 @@ Kami menyambut kontribusi dari komunitas! Ikuti langkah berikut:
 - 🚀 DevOps & Deployment Strategy
 
 **✍️ Tiara Agustin** - Content Strategist & Creative Lead
+
 - ✨ Creative Copywriting & Brand Voice
 - 💡 Product Ideation & User Research
 - 📝 Content Strategy & Article Writing
@@ -472,21 +516,24 @@ copies or substantial portions of the Software.
 ## 📞 Support & Contact
 
 ### **Support Channels**
+
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/Hidayattt24/fe-velora/issues)
 - 💡 **Feature Requests**: [GitHub Discussions](https://github.com/Hidayattt24/fe-velora/discussions)
 - 📧 **Email**: support@velora.app
 - 💬 **Discord**: [Velora Community](https://discord.gg/velora)
 
 ### **Business Inquiries**
+
 - 📧 **Email**: business@velora.app
 - 📱 **WhatsApp**: +62 812-3456-7890
-- 🌐 **Website**: [velora.app](https://velora.app)
+- 🌐 **Website**: [velora-lake.vercel.app](https://velora-lake.vercel.app)
 
 ---
 
 ## 🙏 Acknowledgments
 
 ### **Open Source Dependencies**
+
 - [Next.js](https://nextjs.org/) - React framework
 - [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS
 - [Framer Motion](https://www.framer.com/motion/) - Animation library
@@ -494,11 +541,13 @@ copies or substantial portions of the Software.
 - [Supabase](https://supabase.com/) - Backend as a Service
 
 ### **Design Inspiration**
+
 - [Dribbble](https://dribbble.com/) - Design inspiration
 - [Figma Community](https://www.figma.com/community) - UI components
 - [Material Design](https://material.io/) - Design principles
 
 ### **Medical Content Sources**
+
 - Ikatan Bidan Indonesia (IBI)
 - Perkumpulan Obstetri dan Ginekologi Indonesia (POGI)
 - World Health Organization (WHO)
