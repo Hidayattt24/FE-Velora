@@ -19,7 +19,11 @@ export default function Home() {
   return (
     <main>
       <SplashScreen onComplete={handleSplashComplete} />
-      <div className={`transition-opacity duration-500 ${isSplashComplete ? 'opacity-100' : 'opacity-0'}`}>
+      <div
+        className={`transition-opacity duration-500 ${
+          isSplashComplete ? "opacity-100" : "opacity-0"
+        }`}
+      >
         <Navbar />
         <HeroSection />
         <FeaturesSection />
